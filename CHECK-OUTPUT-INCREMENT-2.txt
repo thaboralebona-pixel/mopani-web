@@ -1,0 +1,38 @@
+
+> mopani-web@0.1.0 check
+> npm run typecheck && npm run format:check && npm test && npm run build
+
+
+> mopani-web@0.1.0 typecheck
+> tsc --noEmit
+
+
+> mopani-web@0.1.0 format:check
+> prettier --check .
+
+Checking formatting...
+All matched files use Prettier code style!
+
+> mopani-web@0.1.0 test
+> vitest run
+
+
+ RUN  v3.2.7 /home/claude/mopani-web
+
+ ✓ src/config/environment.test.ts (22 tests) 9ms
+ ✓ src/domain/domain.test.ts (14 tests) 8ms
+ ✓ src/data/catalog.test.ts (5 tests) 6ms
+ ✓ src/strings/en.test.ts (2 tests) 21ms
+ ✓ src/lib/banner.test.ts (3 tests) 3ms
+
+ Test Files  5 passed (5)
+      Tests  46 passed (46)
+   Start at  08:10:16
+   Duration  2.56s (transform 943ms, setup 0ms, collect 1.00s, tests 48ms, environment 1ms, prepare 593ms)
+
+
+> mopani-web@0.1.0 build
+> node scripts/build.mjs
+
+no config.js present: the app will show the configuration error screen
+build ok: dist/

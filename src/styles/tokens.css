@@ -1,0 +1,78 @@
+/* Design tokens. Mobile first: the base layout is for 360 px wide screens. */
+:root {
+  --color-ink: #1e1e1e;
+  --color-paper: #ffffff;
+  --color-brand: #1f3d2b;
+  --color-warning-bg: #fff4d6;
+  --color-warning-ink: #5a4300;
+  --color-banner-bg: #b00020;
+  --color-banner-ink: #ffffff;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --radius: 8px;
+  --tap-min: 44px;
+  --font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--color-ink);
+  background: var(--color-paper);
+}
+
+main,
+#app {
+  max-width: 36rem;
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+
+h1 {
+  color: var(--color-brand);
+  font-size: 1.5rem;
+  margin: var(--space-3) 0;
+}
+
+.env-banner {
+  background: var(--color-banner-bg);
+  color: var(--color-banner-ink);
+  padding: var(--space-2) var(--space-3);
+  text-align: center;
+  font-weight: 700;
+  border-radius: var(--radius);
+  margin-bottom: var(--space-3);
+}
+
+.notice {
+  padding: var(--space-3);
+  border-radius: var(--radius);
+  margin: var(--space-3) 0;
+}
+.notice-warning {
+  background: var(--color-warning-bg);
+  color: var(--color-warning-ink);
+}
+
+button,
+a.button {
+  min-height: var(--tap-min);
+  min-width: var(--tap-min);
+}
+
+/* Text can grow to 200 percent without breaking the layout. */
+@media (min-width: 40rem) {
+  main,
+  #app {
+    padding: var(--space-4) var(--space-4);
+  }
+}

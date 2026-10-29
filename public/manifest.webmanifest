@@ -1,0 +1,11 @@
+{
+  "name": "Mopani Corridor",
+  "short_name": "Mopani",
+  "description": "Pilot: fresh produce from Limpopo to Gauteng. Payments are not available yet.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1f3d2b",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

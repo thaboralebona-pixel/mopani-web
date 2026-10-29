@@ -1,0 +1,11 @@
+node_modules/
+dist/
+# Local and staging configuration: never commit. Copy from dev-setup/config.example.js.
+dev-setup/config.local.js
+dev-setup/config.staging.js
+public/config.js
+.env
+.env.*
+supabase/.temp/
+supabase/functions/.env
+coverage/
