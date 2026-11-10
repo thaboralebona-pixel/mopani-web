@@ -7,6 +7,9 @@ export interface Quote {
   readonly totalCents: Cents;
   readonly sellerId: string;
   readonly destination: string;
+  /** Total weight in kg, and how many 5 kg blocks the delivery fee is charged for. Shown to the buyer. Null if the server did not send them. */
+  readonly weightKg: number | null;
+  readonly blocks: number | null;
 }
 
 /**
@@ -26,7 +29,14 @@ export function parseQuote(raw: unknown): Quote | null {
   if (typeof sellerId !== 'string' || sellerId.trim() === '') return null;
   if (typeof destination !== 'string' || destination.trim() === '') return null;
   if (product + delivery + card !== total) return null;
+  const weight = typeof r['weight_kg'] === 'number' && r['weight_kg'] >= 0 ? r['weight_kg'] : null;
+  const blocks =
+    typeof r['blocks'] === 'number' && Number.isInteger(r['blocks']) && r['blocks'] >= 1
+      ? r['blocks']
+      : null;
   return {
+    weightKg: weight,
+    blocks,
     productSubtotalCents: product,
     deliveryFeeCents: delivery,
     cardFeeCents: card,

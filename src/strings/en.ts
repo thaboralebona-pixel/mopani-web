@@ -28,7 +28,7 @@ export const strings2 = {
   getTotal: 'Get my total',
   routesHeading: 'Delivery routes',
   routeMinimum: 'Minimum basket',
-  routeFee: 'Delivery fee from',
+  routeFee: 'Delivery fee for each 5 kg or part, from',
   routesLoadError: 'Delivery route details could not be loaded.',
   quoteHeading: 'Your total',
   quoteProduct: 'Products',
@@ -36,6 +36,7 @@ export const strings2 = {
   quoteCard: 'Card processing fee',
   quoteTotal: 'Total',
   quoteShare: 'Delivery is about {pct}% of the product value.',
+  quoteWeight: 'Weight: {kg} kg. Delivery is charged for {blocks} block(s) of up to 5 kg.',
   quoteNeedsSignIn:
     'Your total cannot be worked out yet, because sign-in codes cannot be sent yet. You can keep adding items.',
   quoteBelowMinimum:
@@ -51,4 +52,9 @@ export const strings2 = {
   basketErrorQuantity: 'You can order between 1 and 50 of an item.',
   basketErrorStock: 'You cannot add more than the stock available.',
   basketErrorOutOfStock: 'This item is out of stock.',
+  paymentsHeading: 'Payment status',
+  paymentsNotYet:
+    'Payments are not available yet. When they open, each payment will show as pending until the payment provider confirms it.',
+  paymentsSignIn: 'Sign in to see your payments. Sign-in codes cannot be sent yet.',
+  paymentsNoWithdraw: 'Withdrawals are not available in this pilot.',
 } as const;

@@ -122,8 +122,28 @@ export function quoteSection(quote: Quote): HTMLElement {
   const body: HTMLElement[] = rows.map(([label, cents]) =>
     el('p', 'quote-row', `${label}: ${formatRand(cents)}`)
   );
+  if (quote.weightKg !== null && quote.blocks !== null) {
+    body.push(
+      el(
+        'p',
+        'meta',
+        s.quoteWeight
+          .replace('{kg}', String(quote.weightKg))
+          .replace('{blocks}', String(quote.blocks))
+      )
+    );
+  }
   if (share !== null) body.push(el('p', 'meta', s.quoteShare.replace('{pct}', share.toFixed(1))));
   return section(s.quoteHeading, body);
+}
+
+// Read-only. No balances and no withdraw control until sign-in and the payment provider are live.
+export function paymentsSection(): HTMLElement {
+  return section(s.paymentsHeading, [
+    el('p', 'meta', s.paymentsNotYet),
+    el('p', 'meta', s.paymentsSignIn),
+    el('p', 'meta', s.paymentsNoWithdraw),
+  ]);
 }
 
 export function noticeSection(text: string, warning: boolean): HTMLElement {
