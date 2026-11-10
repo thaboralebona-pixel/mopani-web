@@ -38,16 +38,16 @@ Purpose: a producer can sell safely and be paid through the approved process.
 
 Steps, with the owner of each step:
 
-| Step | Who | Action | App support | Evidence |
-|---|---|---|---|---|
-| 1. Order placed | Buyer | Places order (once sign-in works) | Not yet | Order number |
-| 2. Seller told | Seller | Prepares goods for collection | Notification (not yet sent) | Confirmation text |
-| 3. Driver accepts | Driver | Replies to accept by text, or accepts in app | Partly (accept by phone function) | Assigned status |
-| 4. Collection | Driver, with marshal | Collects at the origin rank, takes a photo | APP (photo, mark collected) | Collection photo, time |
-| 5. Transport | Driver | Travels by taxi; keeps the parcel with them | MANUAL | Taxi reference |
-| 6. Delivery | Driver | Hands over, takes a delivery photo | APP (proof of delivery) | Proof photo, time |
-| 7. Buyer confirmation | Buyer | Confirms receipt | APP once sign-in works | Confirmation time |
-| 8. Payout | Platform | Pays the ledger entries | Ledger only; not a bank transfer | Ledger reconciliation |
+| Step                  | Who                  | Action                                       | App support                       | Evidence               |
+| --------------------- | -------------------- | -------------------------------------------- | --------------------------------- | ---------------------- |
+| 1. Order placed       | Buyer                | Places order (once sign-in works)            | Not yet                           | Order number           |
+| 2. Seller told        | Seller               | Prepares goods for collection                | Notification (not yet sent)       | Confirmation text      |
+| 3. Driver accepts     | Driver               | Replies to accept by text, or accepts in app | Partly (accept by phone function) | Assigned status        |
+| 4. Collection         | Driver, with marshal | Collects at the origin rank, takes a photo   | APP (photo, mark collected)       | Collection photo, time |
+| 5. Transport          | Driver               | Travels by taxi; keeps the parcel with them  | MANUAL                            | Taxi reference         |
+| 6. Delivery           | Driver               | Hands over, takes a delivery photo           | APP (proof of delivery)           | Proof photo, time      |
+| 7. Buyer confirmation | Buyer                | Confirms receipt                             | APP once sign-in works            | Confirmation time      |
+| 8. Payout             | Platform             | Pays the ledger entries                      | Ledger only; not a bank transfer  | Ledger reconciliation  |
 
 Rule: a ledger entry is not proof that a person was paid. Payment is confirmed only when the payment provider and a bank record confirm it.
 
@@ -55,19 +55,19 @@ Waiting payouts: if a delivery has no marshal named, the buyer can still confirm
 
 ## 5. Failed delivery and escalation (MANUAL, with app flags where noted)
 
-| Situation | First action | Who | Escalate to | Deadline |
-|---|---|---|---|---|
-| Seller cannot fulfil | Cancel the item and tell the buyer what happened | Seller and admin | Owner, if the order was paid | Same day |
-| No driver available | Find a replacement driver on the route | Admin | Owner | 2 hours before collection |
-| Taxi departs late | Tell the buyer the new time | Driver | Admin | Immediately |
-| Driver accepts but does not collect | Reassign | Admin | Owner | Before the collection window closes |
-| Collected but not delivered | Driver reports location and status; admin tracks | Driver and admin | Owner | Same day |
-| Buyer unavailable | Hold the parcel at the agreed point and call twice | Driver | Admin | Next business day |
-| Dispute raised | Freeze payouts on the order; gather photos and messages | Admin | Owner and counsel | Within 48 hours (draft target) |
-| Proof photo missing | Do not confirm delivery; ask the driver | Admin | Owner | Same day |
-| Buyer does not confirm | Follow up once after 24 hours | Admin | Owner | 48 hours |
-| Order cancelled | Record reason; no payout until the reason is recorded | Admin | Owner | Same day |
-| Driver or marshal replaced | Record the change on the delivery | Admin | Owner | Same day |
+| Situation                           | First action                                            | Who              | Escalate to                  | Deadline                            |
+| ----------------------------------- | ------------------------------------------------------- | ---------------- | ---------------------------- | ----------------------------------- |
+| Seller cannot fulfil                | Cancel the item and tell the buyer what happened        | Seller and admin | Owner, if the order was paid | Same day                            |
+| No driver available                 | Find a replacement driver on the route                  | Admin            | Owner                        | 2 hours before collection           |
+| Taxi departs late                   | Tell the buyer the new time                             | Driver           | Admin                        | Immediately                         |
+| Driver accepts but does not collect | Reassign                                                | Admin            | Owner                        | Before the collection window closes |
+| Collected but not delivered         | Driver reports location and status; admin tracks        | Driver and admin | Owner                        | Same day                            |
+| Buyer unavailable                   | Hold the parcel at the agreed point and call twice      | Driver           | Admin                        | Next business day                   |
+| Dispute raised                      | Freeze payouts on the order; gather photos and messages | Admin            | Owner and counsel            | Within 48 hours (draft target)      |
+| Proof photo missing                 | Do not confirm delivery; ask the driver                 | Admin            | Owner                        | Same day                            |
+| Buyer does not confirm              | Follow up once after 24 hours                           | Admin            | Owner                        | 48 hours                            |
+| Order cancelled                     | Record reason; no payout until the reason is recorded   | Admin            | Owner                        | Same day                            |
+| Driver or marshal replaced          | Record the change on the delivery                       | Admin            | Owner                        | Same day                            |
 
 Escalation rule: anything involving money, a dispute, or a person's safety goes to the owner the same day.
 
@@ -76,6 +76,7 @@ Escalation rule: anything involving money, a dispute, or a person's safety goes 
 ## 6. First supervised pilot order checklist (MANUAL)
 
 Before the order:
+
 - [ ] Owner has approved the production changes in writing.
 - [ ] Security items SEC-01, SEC-02, SEC-06, SEC-07 are fixed or formally accepted.
 - [ ] Credentials are rotated (SEC-12).
@@ -84,6 +85,7 @@ Before the order:
 - [ ] Test order run on staging from start to finish with the same people.
 
 During the order:
+
 - [ ] Order number recorded.
 - [ ] Seller confirms preparation.
 - [ ] Driver accepts; time recorded.
@@ -92,26 +94,27 @@ During the order:
 - [ ] Owner is told the same day.
 
 After the order:
+
 - [ ] Ledger reconciles (audit view shows zero variance).
 - [ ] Payout status is "pending" everywhere it is shown.
 - [ ] Notes on anything that went wrong, in the incident register.
 
 ## 7. Daily pilot operations report (template)
 
-Date: ____  Prepared by: ____
+Date: \_**\_ Prepared by: \_\_**
 
-| Measure | Today | Running total | Notes |
-|---|---|---|---|
-| Orders placed | | | |
-| Orders collected | | | |
-| Orders delivered | | | |
-| Buyers who confirmed | | | |
-| Failed collections | | | |
-| Failed deliveries | | | |
-| Stock discrepancies | | | |
-| Complaints | | | |
-| Payouts pending | | | |
-| Incidents open | | | |
+| Measure              | Today | Running total | Notes |
+| -------------------- | ----- | ------------- | ----- |
+| Orders placed        |       |               |       |
+| Orders collected     |       |               |       |
+| Orders delivered     |       |               |       |
+| Buyers who confirmed |       |               |       |
+| Failed collections   |       |               |       |
+| Failed deliveries    |       |               |       |
+| Stock discrepancies  |       |               |       |
+| Complaints           |       |               |       |
+| Payouts pending      |       |               |       |
+| Incidents open       |       |               |       |
 
 Blockers:
 Decisions needed from the owner:
