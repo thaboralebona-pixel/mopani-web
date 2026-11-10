@@ -16,6 +16,7 @@ Creating documentation is not completing the wider ProjectX readiness programme.
 3. Do not round up. A partial result is PARTIAL. An unverified result is NOT VERIFIED.
 4. If a test was not run, write NOT RUN. Do not write "passed" for a test you did not run.
 5. If a result was not established independently in this task, write NOT VERIFIED.
+6. **Deployment evidence rule:** Never record a change as DEPLOYED unless the deployment action and its target environment are directly supported by inspected evidence. A commit, push, merge, deployment instruction or report from another person does not independently establish deployment. If deployment is only reported but cannot be verified, classify the claim as REPORTED and record the deployment status as NOT VERIFIED. Do not imply that the change is running in any environment.
 
 ## Required record
 
