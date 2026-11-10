@@ -171,4 +171,11 @@ Privileged access is a separate financial-control risk: who holds the dashboard 
 - **`service_role` can read `vault.decrypted_secrets`** (**Confirmed**). Any secret placed in the database vault is readable by every Edge Function.
 - **Staging matches production** on the ACL of every function in section 2. Source hashes match for every function compared in Phase 5B-4. Five were not hash-compared across environments: `admin_resolve_dispute`, `request_withdrawal`, `create_wallet_for_seller`, `credit_wallet`, `private.run_regression_suite` (**Unresolved**, low risk).
 
+## 8. Verification added on 2026-11-10 (read-only)
+
+- Cron (production, `cron.job`): five jobs confirmed. Jobid 2 `escrow-auto-release-72h`; jobids 3, 4, 5, 6 are `background-sweeps`, `whatsapp-dispatch`, `founder-digest-1800-sast` and `auto-cancel-undispatched`, all owner postgres, all active. The draft's post-check V2 expects these IDs, and they match. Only job 2 reaches a payout.
+- Source search of `public` and `private` for `complete_order`, `resolve_dispute`, `admin_resolve_dispute`, `auto_release_escrow`, `confirm_delivery` and `confirm_order_delivery_by_phone`: no function calls `complete_order`. The draft previously said its only caller was the retired Stripe webhook. That is now stated as unidentified in the database, and the Stripe webhook returns 410. This is the only text correction in this pass.
+- `private.run_regression_suite` and `credit_wallet` match the name search. `credit_wallet` is the dormant trigger function from section 2.3. The regression suite is the R6 item in section 6.
+- The draft `PHASE5B5-containment-package-DRAFT.sql` was corrected in three places: the full cron snapshot is recorded as the restore target, the V3 pointer names the function-privilege query, and the `complete_order` caller statement is corrected. No executable statement was added or uncommented.
+
 Nothing in this document authorises a database change.

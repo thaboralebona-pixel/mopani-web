@@ -132,6 +132,12 @@
 --     database postgres | username postgres | nodename localhost | active true
 --     history: 3,072 runs, all succeeded, first 2026-07-05 14:00 UTC,
 --              latest seen 2026-11-10 13:00 UTC
+--   cron.job, all five rows (re-read 2026-11-10 after section 1 review; restore target)
+--     3 background-sweeps          '5 * * * *'      SELECT private.run_background_sweeps();
+--     4 whatsapp-dispatch          '*/5 * * * *'    SELECT private.invoke_whatsapp_dispatcher();
+--     5 founder-digest-1800-sast   '0 16 * * *'     SELECT private.queue_founder_digest();
+--     6 auto-cancel-undispatched   '15 * * * *'     SELECT private.auto_cancel_undispatched();
+--     all owner postgres, all active. Only jobid 2 reaches a payout (route R3).
 --
 --   Function ACLs (owner postgres, SECURITY DEFINER unless noted)
 --     public.confirm_delivery(bigint, text)
@@ -212,7 +218,7 @@
 --
 -- -- V3  no app or service role can execute any payout entry
 -- --     (expect anon_x = auth_x = svc_x = false on all nine public rows)
--- --     re-run the second query of SECTION 1
+-- --     re-run the function-privilege query of SECTION 1
 --
 -- -- V4  nothing else moved: re-run the three state queries of SECTION 1 and compare
 -- --     row for row with the recorded output. Any difference is an incident.
@@ -274,7 +280,9 @@
 --     outcomes (release and refund). Escalated disputes already cannot be resolved
 --     by these functions (they accept status 'open' only). Disputes need an
 --     owner-approved manual process until a guarded path exists.
---   * complete_order (only caller was the retired Stripe webhook, which returns 410).
+--   * complete_order. No function in schemas public or private calls it (read
+--     2026-11-10 by source search). Its external caller is not identified in the
+--     database; the retired stripe-webhook returns 410 and does not reach it.
 --   * Still working: order creation, quoting, driver delivery steps, raise_dispute,
 --     cancellation, notifications, sweeps, auto-cancel of undispatched orders.
 --     The order freeze, not this package, is what keeps real orders out.
