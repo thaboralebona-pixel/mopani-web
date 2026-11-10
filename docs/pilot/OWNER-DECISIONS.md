@@ -76,3 +76,16 @@ Button styling, copy tone, internal file layout, test structure.
 
 - Resend SMTP key for email sign-in on staging: not provided. Owner to provide via secure channel (not chat).
 - GitHub 2FA: before 8 December 2026.
+
+## Phase 5B owner decisions (2026-11-10)
+
+| #   | Decision                                                                                                                         | Recommendation                                                           | Status             |
+| --- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ------------------ |
+| 17  | Approve production payout containment (`PHASE5B-containment-DRAFT.sql` steps 1 and 2) after staging rehearsal T1 to T8           | Approve after staging passes                                             | Open               |
+| 18  | Approve unscheduling `escrow-auto-release-72h` (step 3)                                                                          | Approve. It can only pay out, and must not run without verified payment  | Open               |
+| 19  | Approve edge-function wording change for WhatsApp confirm and report_problem, and removal of SQLERRM from buyer responses        | Approve                                                                  | Open               |
+| 20  | Correction method for the 7 released test orders (R113 driver and marshal gap; platform +5.00 variance; monitor seller variance) | Document as test records first. Correct only through a reviewed plan     | Open               |
+| 21  | Held order 96 (R50) and dispute 9                                                                                                | Keep held. Owner to decide dispute 9 outcome; do not close it by default | Open               |
+| 22  | Decision 1: admin console source or access                                                                                       | Still required before Phase 4 step 01                                    | Open               |
+| 23  | Decision 2: sensitive KYC collection stays disabled                                                                              | Keep disabled                                                            | Open (recommended) |
+| 24  | Staging-to-production notification separation                                                                                    | Approve staging-only dispatch function and secrets                       | Open               |

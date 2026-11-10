@@ -242,3 +242,16 @@ Owner provisional decisions in force: no seller withdrawals in pilot; no anonymo
 - SEC-01, SEC-02, SEC-03, SEC-04: **dry run passed on staging, rolled back. Not applied.** Not fixed.
 - SEC-06: production still exposed. Draft migration written, not approved. Not fixed.
 - SEC-11 (credentials): not rotated. Owner action. Plan in `CREDENTIAL-ROTATION-PLAN.md`.
+
+## Phase 5B additions (2026-11-10)
+
+- **SEC-21: Payouts not gated by payments_live or verified payment (CRITICAL).** `_apply_order_payout` checks only disputes. Reached by R1 WhatsApp confirm, R2 direct buyer RPC `confirm_delivery` (authenticated EXECUTE), R3 hourly cron `escrow-auto-release-72h`. Confirmed: 7 test orders released, R904 seller credit. Fix: draft `remediation/PHASE5B-containment-DRAFT.sql` (not applied).
+- **SEC-22: Escrow release has no payment evidence.** `orders` has no provider payment reference; `stripe_*` columns NULL on all 8 production orders. Escrow_status `holding` is not proof of payment. Requires design (see `PHASE5B-PAYOUT-CONTAINMENT.md` section 2).
+- **SEC-23: Legacy driver and marshal share unallocated.** `_apply_order_payout_legacy` credits a leg only when a driver or marshal ID exists. Released orders have none, so R113 is calculated and dropped. Confirmed.
+- **SEC-24: Platform wallet variance +5.00.** Platform wallet 118.00 vs platform revenue 113.00. No ledger row explains it. Unexplained.
+- **SEC-25: Integrity monitor disagrees with ledger.** `wallet_integrity_mismatch` (2026-07-26) reports seller ledger sum 0 vs 904 in `wallet_transactions`. Unverified defect in monitor or ledger link.
+- **SEC-26: Staging notifications reach production.** Confirmed: `private.post_notification()` posts to the production `dispatch-notification` URL from the staging database. Remediation in `PHASE5B-PAYOUT-CONTAINMENT.md` section 5.
+- **SEC-27: `resolve_dispute` has no admin check in its body.** Protected only by the service-role grant. Confirmed body. Low until grants change; note for any future console change.
+- **SEC-28: Buyer-visible error detail.** `confirm_order_delivery_by_phone` returns `SQLERRM` to the buyer webhook response. Confirmed. Fix in containment section 3.
+- **SEC-29: Dispute 9 is the only protection on held order 96.** Escalated, SLA breached 2026-07-25, no resolution. Closing it without a decision would let R3 release the order within the hour.
+- **SEC-30: Notification failures recorded daily.** `notification_permanent_failure` rows show `RESEND_API_KEY is not set` almost every day since 2026-10-21. Confirmed. Email delivery is not working; no money impact.

@@ -14,16 +14,17 @@ Nothing in this path reads `app_config.payments_live`. The webhook reply tells t
 
 Current production state (read-only query):
 
-| status | escrow | test | route | orders | total |
-|---|---|---|---|---|---|
-| completed | released | yes | no | 7 | 1,130 |
-| delivered | holding | yes | no | 1 | 50 |
+| status    | escrow   | test | route | orders | total |
+| --------- | -------- | ---- | ----- | ------ | ----- |
+| completed | released | yes  | no    | 7      | 1,130 |
+| delivered | holding  | yes  | no    | 1      | 50    |
 
 `payments_live` = `false`. Every production order is a test order on the legacy path. One order (total 50) is `delivered` and `holding`, so its buyer can confirm it through WhatsApp now and release a legacy split into wallets with no payment behind it.
 
 Risk: low financial exposure today (test data, no card money), but it is a live path that contradicts "payments remain disabled" and would become serious the moment payments are switched on or a real order reaches `holding`.
 
 Recommended (not done; production change needs written approval):
+
 - Owner to decide how to handle the held test order (leave, or release manually after review).
 - Gate `confirm_delivery` / `_apply_order_payout` on `payments_live` and on a non-test order, or disable the WhatsApp confirm path until payments are approved.
 - Reword the webhook reply so it makes no credit claim while payments are off.
@@ -95,3 +96,14 @@ Draft remains in `docs/pilot/remediation/PHASE4-PRODUCTION-SEC-06-migration.sql`
 5. Owner actions: credential rotation, GitHub 2FA by 8 December 2026, taxi association, rosters, counsel's advice, Paystack confirmation.
 
 Nothing in this document authorises a production or Supabase change, payment activation, merge or deployment.
+
+## Phase 5B correction (2026-11-10)
+
+Phase 5 named one payout route (WhatsApp). The complete list, from read-only production inspection, is in `PHASE5B-PAYOUT-CONTAINMENT.md` section 1:
+
+- **R1** WhatsApp confirm (service role).
+- **R2** Direct buyer RPC `confirm_delivery` (any signed-in buyer; authenticated EXECUTE). Not previously identified.
+- **R3** Hourly cron `escrow-auto-release-72h` releases any `holding` order 72 hours after delivery with no open dispute. No human action needed. Not previously identified. This is the most dangerous route.
+- **R4** `complete_order` and `resolve_dispute` (service role only).
+
+All four end in `_apply_order_payout`. The draft containment guards that function and removes R2's buyer EXECUTE. Reconciliation of the eight production orders is in `PHASE5B-RECONCILIATION.md`. The draft `remediation/PHASE5-seller-pack-lines-DRAFT.sql` was not changed in this pass.
