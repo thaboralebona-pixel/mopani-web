@@ -2,7 +2,7 @@
 
 Status: DRAFT for owner review. Documentation only.
 Applies to: all future Claude work on ProjectX (Mopani Corridor).
-Relationship: task-specific prompts (see `PROJECTX-PHASE-EXECUTION-PROMPT.md` and `PROJECTX-INDEPENDENT-AUDIT-PROMPT.md`) supplement these instructions. They cannot override them. If a task prompt conflicts with an owner restriction, the owner restriction takes precedence.
+Relationship: the four task-specific prompts (`PROJECTX-PHASE-EXECUTION-PROMPT.md`, `PROJECTX-INDEPENDENT-AUDIT-PROMPT.md`, `PROJECTX-CHANGE-PROPOSAL-REVIEW-PROMPT.md` and `PROJECTX-COMPLETION-AND-HANDOVER-PROMPT.md`) supplement these instructions. They cannot override them. If a task prompt conflicts with an owner restriction, the owner restriction takes precedence.
 
 ## 1. Project context
 

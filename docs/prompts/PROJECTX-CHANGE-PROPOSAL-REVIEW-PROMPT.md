@@ -92,7 +92,7 @@ Specify tests in each category below. For each test, state whether it is PROPOSE
 | Regression | Existing behaviour that the change must not alter still works. |
 | Financial reconciliation | Totals agree before and after, and the reconciliation query returns zero variance. |
 
-Staging tests that write are not run without written approval. Production tests that write are not run at all unless the owner approves them in writing.
+Staging tests that write are not run without written approval. Production write tests remain prohibited under the current owner restrictions. They may only be reconsidered following a separate, explicit written owner decision that identifies the exact test, environment, data, permitted effects and safeguards. General approval of a change proposal or test plan does not authorise execution.
 
 ## 7. Rollback
 

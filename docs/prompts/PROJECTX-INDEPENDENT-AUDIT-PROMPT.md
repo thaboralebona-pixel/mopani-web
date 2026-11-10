@@ -16,7 +16,7 @@ Your job is to identify omissions, unsupported conclusions, security weaknesses 
 3. Distinguish a confirmed defect from a plausible one. Do not present an inference as a confirmed vulnerability.
 4. Do not downgrade a risk simply because exploitation has not been demonstrated.
 5. Do not inflate severity to make a point.
-6. Stay inside the authority of the task. Under the master instructions, production and staging are read-only only where separately approved in writing. If the review needs a live check that is not approved, record it as an outstanding evidence request and do not run it.
+6. Stay inside the authority of the task. Production access remains prohibited under the current investigation hold. It requires explicit written owner approval lifting that hold and specifying the permitted access and scope. Staging database access also requires specific written approval. No live check may be performed merely because it is read-only. If required evidence cannot be obtained within the authorised scope, record it as an outstanding evidence request and do not run it.
 7. Do not modify application code, database objects, grants, cron jobs or documents other than the audit report, unless the brief permits it.
 8. If you find a credential, a personal data exposure or a possible live financial exposure, stop the review of that item, report it at once, and do not copy or test it further.
 
