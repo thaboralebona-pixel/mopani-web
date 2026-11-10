@@ -51,7 +51,7 @@ For each area, state whether it was reviewed, how, and what was found or not fou
 | P2 — Medium | Meaningful operational, reliability, correctness or maintainability issue. |
 | P3 — Low | Limited-impact documentation, usability or maintainability improvement. |
 
-Severity is set by the impact if the issue is real and reachable, not by how hard it is to prove. A plausible path to an unauthorised payout is P0 until it is shown to be unreachable.
+Severity reflects the potential impact if the issue is real and reachable. Where credible evidence indicates a possible unauthorised payout path, assign a provisional P0 risk rating and label the finding PLAUSIBLE or UNPROVEN as appropriate. Do not represent the exposure as confirmed until the evidence supports that conclusion. Potential impact, evidence that the path exists, evidence that it is reachable, and confidence in the finding are separate judgements; record each.
 
 ## Confirmation status
 

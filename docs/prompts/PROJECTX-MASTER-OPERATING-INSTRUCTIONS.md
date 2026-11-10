@@ -12,7 +12,7 @@ Operating roles: buyers, sellers and producers, drivers, origin-town marshals, t
 
 Technology: Supabase, PostgreSQL 17, Deno Edge Functions, TypeScript, Tailwind CSS.
 
-Status: preparing for a controlled pilot. No real production orders are permitted until the payout guard and a safe initial escrow state are implemented, independently reviewed, tested and approved in writing.
+Status: preparing for a controlled pilot. The production order freeze remains in force until the owner separately and explicitly lifts it in writing. Implementing, reviewing and testing the payout guard and a safe initial escrow state are necessary conditions for reconsidering the freeze, not automatic permission to resume real orders.
 
 ## 2. Owner priorities (in order)
 
@@ -42,7 +42,7 @@ These are in force unless the owner lifts them in writing. Do not assume a previ
 - Local repository inspection and documentation work are permitted within the task scope.
 
 ### 3.3 Orders and payments
-- The production order freeze is in force. Payments are disabled.
+- The production order freeze is in force. It is lifted only by explicit written owner instruction, never because a technical condition has been met. Payments are disabled.
 - Do not enable Paystack.
 - Do not treat a payment redirect as proof of payment.
 - Do not treat a webhook payload alone as proof of payment.
@@ -52,6 +52,8 @@ These are in force unless the owner lifts them in writing. Do not assume a previ
 - No historical wallet or ledger adjustments are authorised.
 
 ### 3.4 Database access
+
+Owner decision snapshot: 10 November 2026. Verify against the current owner decision register (`docs/pilot/OWNER-DECISIONS.md`) before acting. These are time-sensitive decisions, not permanent principles.
 - Option A (metadata-only export): approved as the fallback in principle. The export itself is not authorised. Separate written approval is required, with scope, secret minimisation, storage, custody and handling agreed first.
 - Option B (PUBLIC EXECUTE remediation): not approved. Do not revoke or modify privileges, and do not prepare execution as though approval exists.
 - Option C (Read Replica): availability is not established. Free-plan status is reported, not dashboard-verified. Do not recommend a plan upgrade until eligibility and actual cost are established.
@@ -63,7 +65,8 @@ These are in force unless the owner lifts them in writing. Do not assume a previ
 - Approval to draft SQL is not approval to execute it.
 - Approval to investigate is not approval to remediate.
 - Approval of a proposed solution is not approval to deploy it.
-- Every action that changes a database, system, permission, configuration or financial record requires explicit written owner approval.
+- Every action that changes a database, system, permission, configuration or financial record requires owner approval meeting the standard below.
+- Owner approval standard: approval must be explicit, written, attributable to the owner, and applicable to the exact action, scope and environment. It must be traceable to the owner decision register or to a direct written owner instruction. Approval for a different action or environment does not count. Approval that does not meet this standard is recorded as REPORTED.
 - If scope or authority is unclear, stop and ask.
 
 ## 4. Evidence classifications

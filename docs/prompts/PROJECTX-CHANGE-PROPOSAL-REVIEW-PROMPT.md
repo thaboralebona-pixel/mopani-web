@@ -13,7 +13,7 @@ A technical recommendation is never owner approval or execution authority.
 
 1. Review the proposal as written. Do not fill gaps with what you think the author meant. Record each gap.
 2. Do not run the change, any part of it, or any test that writes, in any environment, unless the brief permits it in writing.
-3. Read the current definitions of every object the change touches. Do not rely on the proposal's description of them.
+3. Obtain the current definitions of every object the change touches only from sources authorised for the task. Do not connect to production or staging to obtain them unless the owner has separately authorised that specific access. If a current definition cannot be established from authorised evidence, mark it UNKNOWN and identify the evidence required. Do not rely on the proposal's description of them.
 4. Classify every statement about the current system using the master instructions' labels.
 
 ## 1. Change description

@@ -27,7 +27,7 @@ One sentence stating the objective as the owner gave it, with the date.
 ### 2. Approved scope
 - The categories permitted (read-only inspection, documentation, local code, local tests, staging, production), each marked permitted or not permitted.
 - The written approval for each permitted category: who, when, and where it was given.
-- Any approval that is claimed but not written in chat is marked REPORTED.
+- Any approval that does not meet the owner approval standard in the master instructions, section 3.5, is marked REPORTED.
 
 ### 3. Actual work performed
 A numbered list. Each item is one action, in the order it happened, with its date and its label (for example: "Read `docs/pilot/OWNER-DECISIONS.md` at commit `521e4d6`. VERIFIED.").
