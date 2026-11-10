@@ -28,7 +28,7 @@ export const strings2 = {
   getTotal: 'Get my total',
   routesHeading: 'Delivery routes',
   routeMinimum: 'Minimum basket',
-  routeFee: 'Delivery fee from',
+  routeFee: 'Delivery fee for each 5 kg or part, from',
   routesLoadError: 'Delivery route details could not be loaded.',
   quoteHeading: 'Your total',
   quoteProduct: 'Products',
