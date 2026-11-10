@@ -28,3 +28,51 @@ Items 12 and 13, any payment flow, any statement that funds are "held", "protect
 ## Not decisions the owner needs to make
 
 Button styling, copy tone, internal file layout, test structure.
+
+---
+
+## Phase 4 update (10 Nov 2026)
+
+### Provisional owner decisions in force
+
+1. No seller withdrawals during the pilot. **Recorded.**
+2. No anonymous youth verification during the pilot. **Recorded.**
+3. Public driver and marshal profile views not required by the current application. **Recorded.**
+4. Legacy subscriptions not approved pilot functionality. **Recorded.**
+5. Payments remain disabled. **Recorded.**
+6. No production change without separate written approval. **Recorded.**
+
+### Owner approvals given in direction (exact migration still needs approval)
+
+- SEC-02 staging lockdown: approved in direction.
+- SEC-03 staging revocation: approved in direction.
+- SEC-01 withdrawal lockdown: approved in direction, with settlement investigation first (done).
+- SEC-04: investigate first (done; `request_subscription` has no dependent function or trigger found; revoke included in step 01).
+- SEC-06 production migration: **not approved**.
+- SEC-11 credentials: rotate, owner action. Not started.
+
+### Decisions now required, ranked by urgency
+
+| Rank | Decision                                                                                                                                               | Why                                                                           |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| 1    | Approve the exact file `docs/pilot/remediation/PHASE4-01-staging-lockdown.sql` for staging                                                             | Blocks all staging remediation. Dry run already passed                        |
+| 2    | Confirm whether any admin console calls `mark_payout_settled` as an authenticated admin                                                                | If yes, step 01 breaks it. Decides whether the revoke can go ahead as written |
+| 3    | Rotate credentials, and identify the caller of `dispatch-notification`                                                                                 | Plan in `CREDENTIAL-ROTATION-PLAN.md`. Owner action                           |
+| 4    | Confirm where KYC documents are uploaded and who can read them                                                                                         | Possibly critical privacy exposure (SEC-17)                                   |
+| 5    | Confirm allocation model A (90/10 on product subtotal; 2:1 delivery) as the working assumption, and whether the legacy 80/10/5/5 branch may be retired | SEC-15. Affects seller statements                                             |
+| 6    | Accept or reject the production SEC-06 migration after a staging re-test, including the loss of seller access to buyer address                         | SEC-06 is production-blocking                                                 |
+| 7    | Defer collection of bank account numbers until payments are enabled                                                                                    | SEC-16 minimisation                                                           |
+| 8    | Name the refund and cancellation authority (`admin_force_cancel`)                                                                                      | Refunds are manual                                                            |
+| 9    | Name the dispute handler and response time                                                                                                             | Disputes freeze payout                                                        |
+| 10   | Buyer confirmation timeout (no auto-confirmation proposed)                                                                                             | Open                                                                          |
+| 11   | Marshal wait limit (48 hours proposed)                                                                                                                 | Open                                                                          |
+| 12   | Route price figures for each product (conflicting notes)                                                                                               | Needed before listing                                                         |
+| 13   | Seller packing view without buyer address (proposed contract)                                                                                          | Needed once SEC-06 is applied                                                 |
+| 14   | Counsel: payments, escrow, POPIA for KYC data, the allocation model                                                                                    | Critical before payments                                                      |
+| 15   | Taxi association engagement                                                                                                                            | No agreement exists                                                           |
+| 16   | Paystack written confirmation                                                                                                                          | Critical before payments                                                      |
+
+### External
+
+- Resend SMTP key for email sign-in on staging: not provided. Owner to provide via secure channel (not chat).
+- GitHub 2FA: before 8 December 2026.

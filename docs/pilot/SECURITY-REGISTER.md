@@ -178,3 +178,67 @@ Status vocabulary:
 | Unverified                                  | 7     | UV-01 to UV-07                                                    |
 
 No item is marked fixed in production.
+
+---
+
+## Phase 4 additions (10 Nov 2026)
+
+Owner provisional decisions in force: no seller withdrawals in pilot; no anonymous youth verification; driver and marshal public views not required; subscriptions not approved; payments disabled; no production change without separate written approval.
+
+### SEC-14 — Same withdrawal debited twice through two paths (financial)
+
+- **Severity:** High. **Confirmed** by simulation on staging (rolled back). Identical definitions on production, grants identical.
+- **Object:** `request_withdrawal_v2`, `approve_withdrawal`, `mark_payout_settled`.
+- **Evidence:** request R100 then approve then settle R100 on the same withdrawal: available 958.50 → 658.50 after two requests and settle, pending 100 remains. Settlement debits `available_balance` directly and is not linked to the withdrawal row. Full table: `PHASE4-SETTLEMENT-INVESTIGATION.md` section 2.
+- **Exploitation / failure scenario:** an authorised admin settles a withdrawal that is already pending, or runs settlement twice. A seller is debited twice. Paying the same withdrawal twice against the ledger is also possible.
+- **Fix:** staging step 01 revokes `mark_payout_settled` and `approve_withdrawal` from app roles. Definitions still need a reviewed change before any settlement process exists.
+- **Production-blocking:** Yes.
+- **Status:** Confirmed. Staging revoke tested in a rolled-back dry run. Not applied.
+
+### SEC-15 — Two live allocation models in the database (financial and legal)
+
+- **Severity:** High (for legal documents and seller statements). **Confirmed** by code.
+- **Object:** `calculate_commission` (trigger `commission_trigger` on `orders`, BEFORE INSERT), `_apply_route_payout`, `_apply_order_payout_legacy`.
+- **Evidence:** non-route orders: 80/10/5/5 of total with 1:1 driver and marshal. Route orders: 90/10 of product subtotal. Full table: `ALLOCATION-ASSUMPTIONS.md`.
+- **Failure scenario:** a non-route order created through a service-role path pays the seller on a different basis from the one agreed with sellers.
+- **Fix:** owner confirmation of model A (route) as the working model; retire the legacy branch in a reviewed change. Not changed in this pass.
+- **Production-blocking:** Yes (must be resolved before any seller statement or payout).
+- **Status:** Confirmed. Owner decision.
+
+### SEC-16 — Sellers can read their own identity and bank data in full (privacy)
+
+- **Severity:** High (privacy). **Confirmed** by policy (`kyc_own_read`, no column restriction). Identical on production.
+- **Object:** `public.seller_kyc` columns `id_number`, `bank_account`, `bank_name`, `bank_branch`, `id_doc_url`, `proof_of_addr`, `verified_by`, `rejection_note`, `verified_youth`.
+- **Evidence:** policy list; column types `text` (plaintext, no encryption evidence). Frontend does not read the table.
+- **Failure scenario:** a seller reads back ID numbers and bank details through the API. A compromised seller account exposes them.
+- **Fix:** column-level grant design in `KYC-PII-REVIEW.md` (requires separate approval). Encryption of `id_number` and `bank_account` before real onboarding.
+- **Production-blocking:** Yes before real sellers submit KYC.
+- **Status:** Confirmed. Design only.
+
+### SEC-17 — KYC document storage location unknown (privacy, possibly critical)
+
+- **Severity:** Unverified, potentially Critical. **Unverified.** Neither project has a KYC storage bucket. `id_doc_url` and `proof_of_addr` are text.
+- **Needed:** owner confirmation of where documents are uploaded and who can read them. Read policies on any bucket that holds them.
+- **Production-blocking:** Yes until confirmed.
+
+### SEC-18 — Staging storage has no read policies (test gap, not production exposure)
+
+- **Severity:** Medium (testing). **Confirmed** on staging: `storage.objects` has no policies; `product-photos` bucket absent on staging.
+- **Impact:** proof-of-delivery photos cannot be opened by the buyer on staging, so the buyer journey cannot be fully tested there.
+- **Fix:** add the production `delivery-proof` policy to staging (staging-only change, separate approval).
+
+### SEC-19 — Production wallet read gaps (functional)
+
+- **Severity:** Medium (functional). **Confirmed:** production has no `marshal_wallet` read policy and no driver or marshal `wallet_transactions` read policies. Staging has them.
+- **Impact:** drivers and marshals cannot see their own balances on production. Not a privacy exposure.
+- **Fix:** optional step 5 in the production migration draft, separate approval.
+
+### SEC-20 — `is_admin()` callable by anonymous visitors (info)
+
+- **Severity:** Info. **Confirmed.** Returns false for anonymous users. No data exposed. Hygiene revoke optional.
+
+### Status of earlier items after Phase 4
+
+- SEC-01, SEC-02, SEC-03, SEC-04: **dry run passed on staging, rolled back. Not applied.** Not fixed.
+- SEC-06: production still exposed. Draft migration written, not approved. Not fixed.
+- SEC-11 (credentials): not rotated. Owner action. Plan in `CREDENTIAL-ROTATION-PLAN.md`.
