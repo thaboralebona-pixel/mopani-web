@@ -106,3 +106,25 @@ These replace the Phase 5B-2 explanations where they differ. Evidence chain in `
 ## Phase 5B-4 note (2026-11-10)
 
 The R5.00 and the R108.00 have different explanations and are kept separate: R5.00 is an unrecorded platform-wallet credit from order 81 (identified); R108.00 was written nowhere for the six orders of 20 July (inferred; the function version of that date and the missing wallet row are unresolved evidence gaps). No balancing entry or wallet adjustment has been made, and none is approved.
+
+## Phase 5B-5: amounts left untouched and outstanding evidence questions (2026-11-10)
+
+Untouched, with no balancing entry, wallet change or ledger rewrite:
+
+| Component                                      |    Amount |
+| ---------------------------------------------- | --------: |
+| Seller credits                                 |   R904.00 |
+| Platform revenue                               |   R113.00 |
+| Platform wallet without a matching revenue row |     R5.00 |
+| Written nowhere                                |   R108.00 |
+| Total                                          | R1,130.00 |
+
+Outstanding evidence questions:
+
+1. Why the `platform_wallet` row seeded on 3 July 2026 was missing before 21 July 2026.
+2. The exact payout function body live on 20 July 2026 (only the 3 July and 21 July versions were read, in part).
+3. Which route produced the seven July releases (no route-specific audit rows exist; logs are out of practical reach).
+4. Why `v_ledger_imbalance_audit` differs between staging and production.
+5. Whether the `resolve_dispute` release branch can succeed as written (test S11, not executed).
+
+Monitor corrections are proposed in `PHASE5B5-GUARD-ARCHITECTURE.md` section 12. None is applied.

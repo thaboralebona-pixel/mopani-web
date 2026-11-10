@@ -1,0 +1,298 @@
+-- =============================================================================
+-- PHASE 5B-5 CONTAINMENT PACKAGE (PRODUCTION): DRAFT
+-- =============================================================================
+--  ****  NOT APPROVED FOR EXECUTION.  NOT EXECUTED ON ANY ENVIRONMENT.  ****
+--  Owner Decision 41 (execute containment SQL): NOT APPROVED as of 2026-11-10.
+--  Every statement that changes state is commented out. Do not uncomment or run
+--  any part of this file without the owner's separate written approval of this
+--  exact file. A transaction that is later rolled back is still a write test and
+--  is NOT authorised.
+--
+--  Supersedes: PHASE5B4-containment-package-DRAFT.sql (eight revokes; it missed
+--  admin_resolve_dispute, see route R8 below).
+--  Review document: docs/pilot/PHASE5B5-CONTAINMENT-REVIEW.md
+--  Target: production project jpjjdzlhthvookllydai only.
+--  Evidence date: read-only queries of 2026-11-10 (13:25 to 13:50 UTC).
+-- =============================================================================
+--
+-- SCOPE
+--   Grants and one schedule entry. No function body, table, policy, role,
+--   extension, order, dispute, wallet or ledger row is changed.
+--
+-- WHAT THIS PACKAGE DOES NOT PROTECT AGAINST (state this to any approver)
+--   * Anyone who can run SQL as postgres or supabase_admin: dashboard SQL editor,
+--     the database password, a new migration, a new cron job.
+--   * Any Edge Function that connects with SUPABASE_DB_URL. Supabase injects that
+--     variable into every Edge Function by default; it is a direct database URL.
+--     The five deployed functions do not use it (three re-read on 2026-11-10, two
+--     read earlier in Phase 5), but a future deployment could.
+--   * The external admin console, which has never been inspected.
+--   * private.run_regression_suite(), postgres only, which calls the payout.
+--   Privileged SQL access is a separate financial-control risk.
+--
+-- -----------------------------------------------------------------------------
+-- ROUTES TO A WALLET CREDIT (complete for schemas public and private, by source
+-- search of every function, trigger function, trigger, rule and cron command)
+-- -----------------------------------------------------------------------------
+--   Direct writers of wallet credits (leaf functions):
+--     public._apply_route_payout(bigint)            route orders
+--     public._apply_order_payout_legacy(bigint)     non-route orders
+--   Sole caller of both: public._apply_order_payout(bigint)
+--
+--   Route  Entry point                                        Role at entry      Closed by
+--   R1     Edge fn whatsapp-webhook -> confirm_order_delivery_by_phone
+--                                                              service_role       B2
+--   R2     RPC confirm_delivery                                authenticated      B1
+--   R3     cron escrow-auto-release-72h -> private.auto_release_escrow
+--                                                              postgres (cron)    A1
+--   R4a    complete_order                                      service_role       B3
+--   R4b    resolve_dispute                                     service_role       B4
+--   R8     admin_resolve_dispute -> resolve_dispute            authenticated      B5   (NEW)
+--          (admin check in body; nested call runs as owner, so B4 alone
+--           does NOT close it)
+--   R7     public.auto_release_escrow() wrapper                service_role       B6
+--   R5a    _apply_order_payout called directly                 service_role       B7
+--   R5b    leaf functions called directly                      service_role       B8, B9
+--   R6     SQL as postgres / supabase_admin / SUPABASE_DB_URL  privileged         NOT CLOSED
+--
+--   Dormant: trigger function public.credit_wallet() writes seller_wallets but is
+--   attached to no trigger. Trigger functions cannot be called directly. Not a
+--   live route; it must never be re-attached.
+--   Not credits: create_wallet_for_seller (inserts a zero wallet row), refund_order,
+--   approve_withdrawal, request_withdrawal, request_withdrawal_v2,
+--   mark_payout_settled (debits and movements). See section E.
+--
+-- -----------------------------------------------------------------------------
+-- NESTED EXECUTION: why these revokes block entry without breaking internals
+-- -----------------------------------------------------------------------------
+--   PostgreSQL checks EXECUTE against the CURRENT user at the moment of each call.
+--   Inside a SECURITY DEFINER function the current user is the function OWNER.
+--   Every function below is SECURITY DEFINER and owned by postgres, and postgres
+--   keeps EXECUTE on all of them (owner privilege; "postgres=X/postgres" in each ACL).
+--   Therefore:
+--     * Revoking EXECUTE from service_role / authenticated stops those roles from
+--       calling the function at the top level.
+--     * A parent function that is still callable continues to reach its children,
+--       because the child is invoked as postgres. This is why EVERY externally
+--       callable ancestor must be revoked, not only the leaves.
+--     * After this package, no ancestor is callable by anon, authenticated or
+--       service_role, so no nested path remains for those roles.
+--   None of these functions is granted to PUBLIC (no "=X/..." entry in any ACL
+--   below); "from public" is included only so the statements are idempotent.
+--   anon, authenticated and service_role are not members of postgres.
+--
+-- =============================================================================
+-- SECTION 0. PRECONDITIONS
+-- =============================================================================
+--   P1  Owner's written approval of this exact file (Decision 41).
+--   P2  Production order freeze in force (Decision 32, approved 2026-11-10).
+--   P3  WhatsApp reply wording decision taken (Decision 42). After B2 the deployed
+--       webhook (version 8) answers a Confirm Receipt tap with
+--       "Something went wrong. We are looking into it." and credits nothing.
+--   P4  Section 1 pre-check output matches the snapshot in section 2. If any line
+--       differs, STOP: this file was written against that state.
+--   P5  A named person is watching for one hour after the change (section 4, V5).
+--
+-- =============================================================================
+-- SECTION 1. PRE-CHECK (read-only; safe to run; record the output)
+-- =============================================================================
+-- select jobid, jobname, schedule, command, nodename, nodeport, database, username, active
+--   from cron.job order by jobid;
+--
+-- select p.oid::regprocedure                           as fn,
+--        pg_get_userbyid(p.proowner)                   as owner,
+--        p.prosecdef                                   as security_definer,
+--        p.proacl                                      as acl,
+--        has_function_privilege('anon', p.oid, 'EXECUTE')          as anon_x,
+--        has_function_privilege('authenticated', p.oid, 'EXECUTE') as auth_x,
+--        has_function_privilege('service_role', p.oid, 'EXECUTE')  as svc_x
+--   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+--  where (n.nspname = 'public' and p.proname in
+--          ('confirm_delivery','confirm_order_delivery_by_phone','complete_order',
+--           'resolve_dispute','admin_resolve_dispute','auto_release_escrow',
+--           '_apply_order_payout','_apply_order_payout_legacy','_apply_route_payout'))
+--     or (n.nspname = 'private' and p.proname in ('auto_release_escrow','run_regression_suite'))
+--  order by 1;
+--
+-- -- state that must be identical before and after
+-- select id, status, escrow_status, buyer_confirmed, total_amount from orders order by id;
+-- select id, order_id, status, resolved_at from disputes order by id;
+-- select (select count(*) from wallet_transactions)          as wallet_tx,
+--        (select count(*) from platform_revenue)             as platform_rev,
+--        (select count(*) from driver_marshal_transactions)  as dm_tx,
+--        (select balance from platform_wallet where id = 1)  as platform_balance,
+--        (select sum(available_balance) from seller_wallets) as seller_available;
+--
+-- =============================================================================
+-- SECTION 2. PRIVILEGE AND SCHEDULE SNAPSHOT (as read 2026-11-10; restore target)
+-- =============================================================================
+--   cron.job
+--     jobid 2 | jobname escrow-auto-release-72h | schedule '0 * * * *'
+--     command 'SELECT private.auto_release_escrow();'
+--     database postgres | username postgres | nodename localhost | active true
+--     history: 3,072 runs, all succeeded, first 2026-07-05 14:00 UTC,
+--              latest seen 2026-11-10 13:00 UTC
+--
+--   Function ACLs (owner postgres, SECURITY DEFINER unless noted)
+--     public.confirm_delivery(bigint, text)
+--         {postgres=X/postgres, authenticated=X/postgres, service_role=X/postgres}
+--     public.confirm_order_delivery_by_phone(text, bigint, text)
+--         {postgres=X/postgres, service_role=X/postgres}
+--     public.complete_order(bigint, text)
+--         {postgres=X/postgres, service_role=X/postgres}
+--     public.resolve_dispute(bigint, text, text, text)
+--         {postgres=X/postgres, service_role=X/postgres}
+--     public.admin_resolve_dispute(bigint, text, text, text)
+--         {postgres=X/postgres, authenticated=X/postgres, service_role=X/postgres}
+--     public.auto_release_escrow()
+--         {postgres=X/postgres, service_role=X/postgres}
+--     public._apply_order_payout(bigint)
+--         {postgres=X/postgres, service_role=X/postgres}
+--     public._apply_order_payout_legacy(bigint)
+--         {postgres=X/postgres, service_role=X/postgres}
+--     public._apply_route_payout(bigint)
+--         {postgres=X/postgres, service_role=X/postgres}
+--     private.auto_release_escrow()            {postgres=X/postgres}   (unchanged by this package)
+--     private.run_regression_suite()  INVOKER  {postgres=X/postgres}   (unchanged by this package)
+--
+-- =============================================================================
+-- SECTION 3. PROPOSED CHANGES (ALL COMMENTED OUT; NOT AUTHORISED)
+-- =============================================================================
+-- begin;
+--
+-- -- A1  stop the hourly automatic release (R3)
+-- select cron.unschedule('escrow-auto-release-72h');
+--
+-- -- B1  buyer-triggered payout (R2); also removes the service-role direct call
+-- revoke execute on function public.confirm_delivery(bigint, text)
+--   from public, anon, authenticated, service_role;
+--
+-- -- B2  WhatsApp confirmation (R1)
+-- revoke execute on function public.confirm_order_delivery_by_phone(text, bigint, text)
+--   from public, anon, authenticated, service_role;
+--
+-- -- B3  completion path (R4a)
+-- revoke execute on function public.complete_order(bigint, text)
+--   from public, anon, authenticated, service_role;
+--
+-- -- B4  dispute release, service role (R4b)
+-- revoke execute on function public.resolve_dispute(bigint, text, text, text)
+--   from public, anon, authenticated, service_role;
+--
+-- -- B5  dispute release through the admin wrapper (R8)
+-- revoke execute on function public.admin_resolve_dispute(bigint, text, text, text)
+--   from public, anon, authenticated, service_role;
+--
+-- -- B6  on-demand automatic release wrapper (R7)
+-- revoke execute on function public.auto_release_escrow()
+--   from public, anon, authenticated, service_role;
+--
+-- -- B7  parent payout function called directly (R5a)
+-- revoke execute on function public._apply_order_payout(bigint)
+--   from public, anon, authenticated, service_role;
+--
+-- -- B8  legacy leaf called directly (R5b)
+-- revoke execute on function public._apply_order_payout_legacy(bigint)
+--   from public, anon, authenticated, service_role;
+--
+-- -- B9  route leaf called directly (R5b)
+-- revoke execute on function public._apply_route_payout(bigint)
+--   from public, anon, authenticated, service_role;
+--
+-- commit;
+--
+-- =============================================================================
+-- SECTION 4. POST-CHANGE VERIFICATION (read-only)
+-- =============================================================================
+-- -- V1  release job gone (expect ok = true)
+-- select count(*) = 0 as ok from cron.job where jobname = 'escrow-auto-release-72h';
+--
+-- -- V2  remaining jobs unchanged (expect jobids 3, 4, 5, 6, all active)
+-- select jobid, jobname, schedule, command, username, active from cron.job order by jobid;
+--
+-- -- V3  no app or service role can execute any payout entry
+-- --     (expect anon_x = auth_x = svc_x = false on all nine public rows)
+-- --     re-run the second query of SECTION 1
+--
+-- -- V4  nothing else moved: re-run the three state queries of SECTION 1 and compare
+-- --     row for row with the recorded output. Any difference is an incident.
+--
+-- -- V5  one hour and again 24 hours later: no release activity (expect zero rows)
+-- select id, performed_at, action, target_id from admin_audit_log
+--  where action in ('auto_release','auto_release_failed','delivery_confirmed_via_whatsapp')
+--    and performed_at > now() - interval '25 hours'
+--  order by performed_at desc;
+--
+-- -- V6  no caller of a payout function remains executable by an app or service role
+-- --     (expect zero rows)
+-- with recursive f as (
+--   select p.oid, p.proname, p.prosrc from pg_proc p
+--     join pg_namespace n on n.oid = p.pronamespace
+--    where n.nspname in ('public','private')),
+-- up(oid, proname) as (
+--   select oid, proname from f
+--    where proname in ('_apply_route_payout','_apply_order_payout_legacy')
+--   union
+--   select c.oid, c.proname from f c join up
+--     on c.oid <> up.oid and c.prosrc ~ ('(^|[^a-zA-Z0-9_])' || up.proname || '\s*\('))
+-- select up.oid::regprocedure as still_reachable
+--   from up
+--  where has_function_privilege('anon', up.oid, 'EXECUTE')
+--     or has_function_privilege('authenticated', up.oid, 'EXECUTE')
+--     or has_function_privilege('service_role', up.oid, 'EXECUTE');
+--
+-- =============================================================================
+-- SECTION 5. ROLLBACK (exact inverse of section 3; restores section 2)
+-- =============================================================================
+--   Do NOT run R-A1 until a payment-evidence guard is live in both leaf functions.
+--   The hourly job would release every eligible order on its next run.
+--
+-- begin;
+-- grant execute on function public.confirm_delivery(bigint, text)                       to authenticated, service_role;
+-- grant execute on function public.confirm_order_delivery_by_phone(text, bigint, text)  to service_role;
+-- grant execute on function public.complete_order(bigint, text)                         to service_role;
+-- grant execute on function public.resolve_dispute(bigint, text, text, text)            to service_role;
+-- grant execute on function public.admin_resolve_dispute(bigint, text, text, text)      to authenticated, service_role;
+-- grant execute on function public.auto_release_escrow()                                to service_role;
+-- grant execute on function public._apply_order_payout(bigint)                          to service_role;
+-- grant execute on function public._apply_order_payout_legacy(bigint)                   to service_role;
+-- grant execute on function public._apply_route_payout(bigint)                          to service_role;
+-- commit;
+--
+-- -- R-A1 (separate step, separate approval). A re-created job receives a NEW jobid;
+-- --       jobid 2 and its run history rows stay in cron.job_run_details.
+-- select cron.schedule('escrow-auto-release-72h', '0 * * * *', 'SELECT private.auto_release_escrow();');
+--
+-- =============================================================================
+-- SECTION 6. WHAT STOPS WORKING AFTER CONTAINMENT
+-- =============================================================================
+--   * WhatsApp "Confirm Receipt": the webhook's RPC is refused. Deployed version 8
+--     replies "Something went wrong. We are looking into it." No credit. No order change.
+--   * Direct buyer confirmation by API (not used by the frontend).
+--   * Automatic release after 72 hours. Delivered orders stay delivered / holding.
+--   * Dispute resolution through resolve_dispute and admin_resolve_dispute, BOTH
+--     outcomes (release and refund). Escalated disputes already cannot be resolved
+--     by these functions (they accept status 'open' only). Disputes need an
+--     owner-approved manual process until a guarded path exists.
+--   * complete_order (only caller was the retired Stripe webhook, which returns 410).
+--   * Still working: order creation, quoting, driver delivery steps, raise_dispute,
+--     cancellation, notifications, sweeps, auto-cancel of undispatched orders.
+--     The order freeze, not this package, is what keeps real orders out.
+--
+-- =============================================================================
+-- SECTION E. RELATED WALLET WRITERS, NOT PART OF THIS PACKAGE (information only)
+-- =============================================================================
+--   These write wallets but do not create order credits. They are listed so the
+--   approver knows they remain. Each needs its own decision.
+--     public.refund_order(bigint, text)            service_role
+--         debits wallets on a fixed 80/10/5/5 split that does not mirror payout
+--     public.request_withdrawal_v2(numeric)        authenticated, service_role
+--         moves available to pending; needs verified KYC (0 rows on production)
+--     public.request_withdrawal(uuid, numeric)     service_role
+--     public.approve_withdrawal(bigint)            service_role
+--     public.mark_payout_settled(uuid, numeric, text)  authenticated (admin check), service_role
+--         blocked on Decision 1 (admin console) in the Phase 4 lockdown
+--   Recommendation (owner decision 47, not approved): revoke refund_order from
+--   service_role in the same window, and settle the Phase 4 withdrawal lockdown
+--   once Decision 1 is answered.
+-- =============================================================================

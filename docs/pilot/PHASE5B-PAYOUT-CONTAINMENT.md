@@ -189,3 +189,11 @@ Read-only production evidence in `PHASE5B-PRIVILEGE-AND-FUNCTION-REVIEW.md` chan
 - A further route exists: `public.auto_release_escrow()`, callable by the service role (R7). The package closes it.
 - Section 5 correction: staging has no `pg_net`, so its notification functions cannot call production as installed. The production URL is still in the staging code and must be replaced before `pg_net` is enabled there.
 - Permanent control: `PHASE5B4-GUARD-ARCHITECTURE.md`.
+
+## Phase 5B-5 update (2026-11-10)
+
+- Current containment draft: `remediation/PHASE5B5-containment-package-DRAFT.sql`. **Not approved, not executed.** It replaces the Phase 5B-4 draft.
+- The list is now one cron unschedule and **nine** revokes. The addition is `admin_resolve_dispute` (route R8), which reaches the payout through a nested call that a revoke on `resolve_dispute` alone does not stop.
+- Review, route classification and nested-execution explanation: `PHASE5B5-CONTAINMENT-REVIEW.md`.
+- Not contained by any grant change: SQL as `postgres` or `supabase_admin`, any Edge Function using `SUPABASE_DB_URL`, the external admin console, `private.run_regression_suite`.
+- After containment the deployed WhatsApp webhook replies "Something went wrong. We are looking into it." to a Confirm Receipt tap. Proposed wording: `WHATSAPP-RECEIPT-CONFIRMATION-COPY-DRAFT.md`.

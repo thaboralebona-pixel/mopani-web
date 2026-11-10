@@ -265,3 +265,12 @@ Superseded by `PHASE5B-PRIVILEGE-AND-FUNCTION-REVIEW.md` where they differ:
 - Section 4: R5 is identified; the monitor discrepancy is a NULL-arithmetic bug.
 - Section 6: no function can resolve or close an escalated dispute. Only privileged SQL can change dispute 9. Route R5b ignores the dispute.
 - Section 7: add tests T17 (service role calls each leaf function directly; must be refused), T18 (order created by `create_order_v2` starts in a non-`holding` state once the new initial state exists), T19 (dispute insert by a user who is neither buyer nor seller is refused), T20 (monitor reports a correct seller ledger sum for a wallet with credits and no debits), T21 (`resolve_dispute` release branch on an open dispute: record whether it succeeds). All tests remain **not executed**.
+
+## Phase 5B-5 pointer (2026-11-10)
+
+This document is kept for history. Current versions:
+
+- Architecture: `PHASE5B5-GUARD-ARCHITECTURE.md`.
+- SQL draft: `remediation/PHASE5B5-payment-guard-DRAFT.sql` (not executed, not parsed).
+- Tests: `PHASE5B5-TEST-MATRIX.md` (16 read-only checks, 92 write tests, none executed).
+- Route list now includes R8 (`admin_resolve_dispute`).

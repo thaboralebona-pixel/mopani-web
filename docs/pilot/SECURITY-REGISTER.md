@@ -303,3 +303,17 @@ Evidence: `PHASE5B4-READONLY-FINDINGS.md`.
 - **SEC-26 corrected.** Staging's notification functions contain the production URL, but `pg_net` is not installed on staging, so no call can be made as installed. The coupling is latent and becomes live if `pg_net` is enabled.
 - **Route payout (`_apply_route_payout`) confirmed** to have no payment check, no dispute check and no check that pooled wallet rows were actually updated. It does refuse orders with no driver. Unassigned marshal share goes to pooled row id 1 with a NULL recipient.
 - `admin_force_cancel` **confirmed** admin-gated; closes that unknown.
+
+## Phase 5B-5 additions (2026-11-10, read-only on production and staging)
+
+Evidence: `PHASE5B5-CONTAINMENT-REVIEW.md`, `WHATSAPP-RECEIPT-CONFIRMATION-COPY-DRAFT.md`, `PHASE5B5-STAGING-PREPARATION.md`, `PHASE5B5-GUARD-ARCHITECTURE.md`. Earlier entries are unchanged.
+
+- **SEC-51: pgTAP is installed in the exposed `public` schema on production.** 22 helper functions that execute dynamic SQL are callable by `authenticated`. They run with the caller's rights, so no privilege is gained, but arbitrary SQL text can be run through the API. **Confirmed.** Medium.
+- **SEC-52: `admin_resolve_dispute` is a further payout route (R8).** Executable by `authenticated`, admin check in body, calls `resolve_dispute`, which calls the payout. The Phase 5B-4 containment draft did not close it. **Confirmed.** High. Closed in the 5B-5 draft (B5).
+- **SEC-53: Every Edge Function receives a direct database URL (`SUPABASE_DB_URL`) and project-level secrets.** A function using it is not bound by `service_role` revokes. No deployed function uses it (three verified today, two read earlier). **Confirmed** from Supabase documentation and deployed sources. High as a design constraint.
+- **SEC-54: `service_role` can read `vault.decrypted_secrets`.** Any secret in the database vault is readable by every Edge Function. **Confirmed.** Medium.
+- **SEC-55: WhatsApp webhook (deployed version 8) tells the buyer "The seller and driver have been credited".** Verified from deployed source. It also tells unknown senders that their number is not the buyer on a given order, and writes phone numbers to function logs and audit rows. **Confirmed.** High while any confirmation can succeed.
+- **SEC-56: Staging hazards before any extension is enabled.** Three functions contain the production project reference (`post_notification`, `invoke_whatsapp_dispatcher`, `guard_product_image`); the notification trigger is enabled; 14 notifications are pending; the vault is empty; there is no migration history table. **Confirmed.**
+- **SEC-57 (updates SEC-31): Edge Function sources are recoverable read-only from the platform** but are still not in version control. Meta template texts are not recoverable from here. **Confirmed.**
+- **SEC-58: `private.run_regression_suite()` exists on production and calls the payout.** Postgres only, security invoker. It must not be run on production. **Confirmed.**
+- **Route payout is one of the two credit writers.** There is no third. `_apply_route_payout` has a single caller, `_apply_order_payout`. **Confirmed.**

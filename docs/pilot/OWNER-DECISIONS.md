@@ -139,3 +139,27 @@ Button styling, copy tone, internal file layout, test structure.
 | 44  | Approve authoring guard v3 SQL from `PHASE5B4-GUARD-ARCHITECTURE.md` for staging rehearsal                                                            | Approve                                      | Open   |
 | 45  | Phone ownership verification before any phone-based action has financial effect                                                                       | Approve as a pilot requirement               | Open   |
 | 46  | Staging write-test execution (T1 to T40)                                                                                                              | Separate authorisation after 43 and 44       | Open   |
+
+## Decision status as instructed for Phase 5B-5 (2026-11-10)
+
+| Decision                                            | Status                                                                             |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| 32: production order freeze                         | **Approved.** In force until the owner changes it in writing                       |
+| Cron unscheduling (18, 26)                          | Approved in principle. **Execution not authorised**                                |
+| 41: execute containment SQL                         | **Not approved**                                                                   |
+| 42: WhatsApp wording change                         | Approved in principle. **Production deployment not authorised**                    |
+| 43, 44: staging preparation and guard SQL authoring | **Approved** as preparation. Staging changes and test execution **not authorised** |
+
+## Phase 5B-5 recommendations (not decisions until the owner approves)
+
+| #   | Recommendation                                                                                                                                                                                | Why                                                                         | Status         |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | -------------- |
+| 47  | Review `remediation/PHASE5B5-containment-package-DRAFT.sql` (one unschedule, nine revokes) in place of the eight-revoke draft                                                                 | The earlier draft left `admin_resolve_dispute` open                         | Recommendation |
+| 48  | During containment, stop queueing the `order_delivered` WhatsApp template, or replace it with one that has no Confirm Receipt button                                                          | The button invites an action that will be refused                           | Recommendation |
+| 49  | Run the payment verifier in a separate project that alone holds the provider keys and the `payment_writer` credential (architecture option A)                                                 | Secrets and the database URL are shared by all functions within one project | Recommendation |
+| 50  | Remove pgTAP from the exposed schema on production                                                                                                                                            | SEC-51                                                                      | Recommendation |
+| 51  | Confirm the release rule: no release without a driver; release may proceed with the marshal share held in suspense                                                                            | Needed to finalise the guard                                                | Recommendation |
+| 52  | Treat dashboard access, the database password and `SUPABASE_DB_URL` as payout credentials: limit who holds them, rotate the password, and forbid direct database connections in function code | Containment cannot bind privileged access                                   | Recommendation |
+| 53  | Export the Meta template texts and commit the deployed Edge Function sources to the repository                                                                                                | Wording cannot be reviewed otherwise                                        | Recommendation |
+| 54  | Approve staging actions S1 to S13 in the order given in `PHASE5B5-STAGING-PREPARATION.md`                                                                                                     | Staging cannot rehearse the guard as it stands                              | Recommendation |
+| 55  | Decide separately on `refund_order` and the withdrawal functions (containment draft, section E)                                                                                               | They write wallets and are outside the package                              | Recommendation |
