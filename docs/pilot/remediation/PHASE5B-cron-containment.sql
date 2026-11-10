@@ -1,0 +1,61 @@
+-- =============================================================================
+-- PHASE 5B: EMERGENCY CONTAINMENT OF escrow-auto-release-72h (PRODUCTION)
+-- STATUS: PREPARED ONLY. NOT EXECUTED. Requires separate written owner approval.
+-- Evidence (read 2026-11-10, production jpjjdzlhthvookllydai):
+--   jobid      : 2
+--   jobname    : escrow-auto-release-72h
+--   schedule   : 0 * * * *   (hourly, minute 0)
+--   command    : SELECT private.auto_release_escrow();
+--   active     : true
+--   function   : private.auto_release_escrow() returns integer; SECURITY DEFINER;
+--                selects delivered + holding orders with buyer_confirmed = false and
+--                delivered_at older than 72h + 30min with no open dispute, then calls
+--                public._apply_order_payout(order_id) and marks the order completed.
+--   job owner  : NOT RECORDED (cron.job.username was not read). Verify before approval.
+-- =============================================================================
+
+-- -----------------------------------------------------------------------------
+-- A. UNSCHEDULE (run only after written approval)
+-- Removes the job row from cron.job. Does not touch orders, wallets, ledgers,
+-- disputes, audit rows or the function definition.
+-- -----------------------------------------------------------------------------
+-- select cron.unschedule('escrow-auto-release-72h');
+
+-- -----------------------------------------------------------------------------
+-- B. READ-ONLY VERIFICATION (run after A; expect zero rows)
+-- -----------------------------------------------------------------------------
+-- select jobid, jobname, schedule, command, active
+--   from cron.job
+--  where jobname = 'escrow-auto-release-72h';
+--
+-- Also confirm no further automatic releases are being written (expect no rows
+-- with an auto_release action dated after the unschedule time):
+-- select id, performed_at, action, target_id
+--   from admin_audit_log
+--  where action in ('auto_release', 'auto_release_failed')
+--    and performed_at > now() - interval '2 hours'
+--  order by performed_at desc;
+
+-- -----------------------------------------------------------------------------
+-- C. RESTORE (rollback; run only when the payout guard is in place, see
+-- PHASE5B-guard-v2-DRAFT.sql. Restoring the job while the guard is absent would
+-- allow the next run to release any eligible order.)
+-- -----------------------------------------------------------------------------
+-- select cron.schedule(
+--   'escrow-auto-release-72h',
+--   '0 * * * *',
+--   'SELECT private.auto_release_escrow();'
+-- );
+
+-- -----------------------------------------------------------------------------
+-- EFFECT ON RECORDS
+--  * Existing orders, wallets, ledger rows, platform revenue, audit rows and
+--    disputes are NOT changed by A.
+--  * Orders the job would have released stay in status 'delivered' with
+--    escrow_status 'holding'. The 72-hour clock is derived from delivered_at, so
+--    nothing is lost; the order simply becomes eligible for release again only when
+--    a reviewed process (or restored job) runs.
+--  * Order 96 (held R50) is unaffected by A. Its exposure is dispute 9 and any route
+--    that can change dispute 9 (see PHASE5B-GUARD-AND-TESTS.md, section 6).
+--  * cron.unschedule keeps historical run records in cron.job_run_details.
+-- =============================================================================

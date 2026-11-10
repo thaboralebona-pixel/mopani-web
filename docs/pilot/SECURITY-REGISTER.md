@@ -255,3 +255,16 @@ Owner provisional decisions in force: no seller withdrawals in pilot; no anonymo
 - **SEC-28: Buyer-visible error detail.** `confirm_order_delivery_by_phone` returns `SQLERRM` to the buyer webhook response. Confirmed. Fix in containment section 3.
 - **SEC-29: Dispute 9 is the only protection on held order 96.** Escalated, SLA breached 2026-07-25, no resolution. Closing it without a decision would let R3 release the order within the hour.
 - **SEC-30: Notification failures recorded daily.** `notification_permanent_failure` rows show `RESEND_API_KEY is not set` almost every day since 2026-10-21. Confirmed. Email delivery is not working; no money impact.
+
+## Phase 5B-2 additions (2026-11-10)
+
+Detail and evidence labels: `PHASE5B-GUARD-AND-TESTS.md`. No production SQL was run in this pass.
+
+- **SEC-31: Production Edge Function sources are not in version control.** No `supabase/functions` in the repository. Call graph cannot be checked against code. **Confirmed** (repo) for absence; contents were read earlier via tooling.
+- **SEC-32: `resolve_dispute` has no body-level admin check.** Protected only by service-role grant. **Confirmed** (definition read).
+- **SEC-33: Dispute 9 is the sole protection for held order 96.** Any route that closes dispute 9 lets `escrow-auto-release-72h` release order 96 within the hour. **Confirmed** condition; likelihood depends on unread `run_background_sweeps`.
+- **SEC-34: Legacy payout drops driver and marshal legs when IDs are absent.** No `else` branch. Explains R113 gap. **Confirmed** (definition, NULL IDs on all eight deliveries).
+- **SEC-35: Platform wallet R5.00 above platform revenue, unexplained.** **Confirmed** figures; cause unknown.
+- **SEC-36: Integrity monitor seller check returns 0 where ledger shows 904.** Probable cause: `wallet_type` NULL on all seller rows. **Inferred**, not proven.
+- **SEC-37: Grants on `orders`, `disputes`, `app_config` not read.** Bypasses B1 to B4 (flip payments_live, direct escrow or dispute writes, direct insert of holding orders) cannot be ruled out. **Unverified.**
+- **SEC-38: Cron job owner not recorded.** `cron.job.username` not read; auto-release privilege level **Unverified**.

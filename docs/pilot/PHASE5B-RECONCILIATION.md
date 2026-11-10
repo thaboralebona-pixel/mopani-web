@@ -77,3 +77,16 @@ No later audit row shows anyone responding to this run.
 - Do not release or re-run order 96.
 - Do not reverse, redistribute or edit any row listed above.
 - Do not write a balancing entry until the owner has decided the correction method (see `PHASE5B-PAYOUT-CONTAINMENT.md`, decision D).
+
+## Phase 5B-2 explanations (2026-11-10)
+
+Full reasoning in `PHASE5B-GUARD-AND-TESTS.md` section 4.
+
+- **R904 seller credits: confirmed.** Legacy code credits 80% of total when no driver or marshal is present. Seven credit rows sum to 904, matching the seller wallet.
+- **R113 platform revenue: confirmed.** 10% of total, written to `platform_revenue` and added to the platform wallet. No association cut applies.
+- **R113 driver and marshal share: confirmed missing by design defect.** The legacy function calculates 5% + 5% and writes a leg only when an ID exists. No `else` branch, so the amount is dropped. No `driver_marshal_transactions` rows exist for these orders.
+- **R5 platform variance: unexplained.** Platform wallet 118 vs platform revenue 113. Order 96 has no revenue row. The wallet was changed by a writer other than the legacy release. Candidate writers include `refund_order` and any unread function. No balancing entry is made.
+- **Monitor seller 0 vs 904: inferred.** `wallet_type` is NULL on all seller rows; the monitor's seller check probably filters on it. Monitor body not read.
+- **Release channel for the seven orders: inferred.** No audit row of the R1 or R3 type exists before 1 October, consistent with R2 (direct RPC, no audit row). Log window not checked: the log tool covers 24 hours per query and the events are about four months old.
+- **Payment references:** `stripe_session_id` and `stripe_payment_intent` are NULL on all eight orders. No payments table was read in this pass.
+- No historical record, balance or ledger entry was changed.

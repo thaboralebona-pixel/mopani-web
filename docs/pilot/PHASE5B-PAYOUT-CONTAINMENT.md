@@ -163,3 +163,11 @@ Proposed remediation (separate approval, not executed):
 | G   | Decision 2 (KYC collection stays disabled)                                       | Keep disabled                                                                                                                             |
 
 Nothing in this document authorises a production change, payment activation, a merge or a deployment.
+
+## Phase 5B-2 update (2026-11-10)
+
+- The payments_live-only guard in step 1 is **containment only**. It does not check payment evidence, amount, currency, recipient legs or audit basis. See `PHASE5B-GUARD-AND-TESTS.md` section 3.
+- Guard v2 (`remediation/PHASE5B-guard-v2-DRAFT.sql`) requires a `payment_evidence` table that does not exist yet. It fails closed until it does.
+- The cron unschedule SQL, verification and restoration are in `remediation/PHASE5B-cron-containment.sql`. Restore only after guard v2.
+- Full call graph (R1 to R4b), bypass list B1 to B8, order 96 and dispute 9 analysis, and staging tests T1 to T16 with the safe/fixture split are in `PHASE5B-GUARD-AND-TESTS.md`.
+- No test was executed.
