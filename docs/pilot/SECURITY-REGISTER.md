@@ -268,3 +268,26 @@ Detail and evidence labels: `PHASE5B-GUARD-AND-TESTS.md`. No production SQL was 
 - **SEC-36: Integrity monitor seller check returns 0 where ledger shows 904.** Probable cause: `wallet_type` NULL on all seller rows. **Inferred**, not proven.
 - **SEC-37: Grants on `orders`, `disputes`, `app_config` not read.** Bypasses B1 to B4 (flip payments_live, direct escrow or dispute writes, direct insert of holding orders) cannot be ruled out. **Unverified.**
 - **SEC-38: Cron job owner not recorded.** `cron.job.username` not read; auto-release privilege level **Unverified**.
+
+## Phase 5B-3 additions and status changes (2026-11-10, read-only production pass)
+
+Evidence: `PHASE5B-PRIVILEGE-AND-FUNCTION-REVIEW.md`.
+
+Status changes to earlier entries:
+
+- **SEC-34 corrected.** Today's legacy payout gives unassigned driver and marshal legs to the seller (90%). The July code sent them to the platform wallet. R108 was lost because the wallet row did not exist on 20 July; R5 is SEC-35.
+- **SEC-35 resolved (cause identified).** R5.00 = order 81's unassigned legs (2.50 + 2.50) credited to `platform_wallet` without a revenue row by the 21 July payout version. No correction made.
+- **SEC-36 resolved (cause identified).** See SEC-45.
+- **SEC-37 closed for app roles.** `authenticated` cannot update `orders`, cannot update or delete `disputes`, cannot read or write `app_config`. Still open by design for `service_role` and `postgres`.
+- **SEC-38 resolved.** All five cron jobs run as `postgres`.
+
+New entries:
+
+- **SEC-39: Unused table privileges on financial tables.** `authenticated` holds INSERT, UPDATE or DELETE at table level on nine tables where RLS is the only barrier; RLS is not forced. **Confirmed.** Medium.
+- **SEC-40: The ordinary order flow reaches payout with no payment (CRITICAL).** `orders.escrow_status` defaults to `holding`. A buyer order created with `create_order_v2`, delivered by a driver, is paid out on buyer confirmation or after 72 hours by cron. **Confirmed** from column default and definitions.
+- **SEC-41: `refund_order` does not mirror payout.** Fixed 80/10/5/5 reversal with unassigned legs taken from the platform, against a payout that now gives them to the seller. **Confirmed.** High before any refund is used.
+- **SEC-42: Monitors fail silently.** Sweep errors are swallowed; each variance is logged once; email alerts have failed daily since at least 2026-08-19. **Confirmed.** High.
+- **SEC-43: Any signed-in user can insert a dispute on any order.** Insert policy checks only `raised_by = auth.uid()`. An open dispute freezes that order's payout. **Confirmed.** Medium (denial of payout, not theft).
+- **SEC-44: Service role can call the leaf payout functions directly.** `_apply_route_payout` and `_apply_order_payout_legacy` are executable by `service_role` and do not check disputes. A guard in `_apply_order_payout` alone is bypassed. **Confirmed.** High.
+- **SEC-45: Wallet integrity view has a NULL-arithmetic bug.** Seller ledger sum is reported as 0 whenever a wallet has no debit rows. **Confirmed** (definition and current output).
+- **SEC-46: Escalated disputes have no resolution path.** `resolve_dispute` accepts only `open`; its release branch also appears unable to pass the payout's own dispute check. **Confirmed** (definitions); the second part is inferred, untested.

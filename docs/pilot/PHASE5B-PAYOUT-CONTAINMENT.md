@@ -171,3 +171,14 @@ Nothing in this document authorises a production change, payment activation, a m
 - The cron unschedule SQL, verification and restoration are in `remediation/PHASE5B-cron-containment.sql`. Restore only after guard v2.
 - Full call graph (R1 to R4b), bypass list B1 to B8, order 96 and dispute 9 analysis, and staging tests T1 to T16 with the safe/fixture split are in `PHASE5B-GUARD-AND-TESTS.md`.
 - No test was executed.
+
+## Phase 5B-3 update (2026-11-10)
+
+Read-only production evidence in `PHASE5B-PRIVILEGE-AND-FUNCTION-REVIEW.md` changes the containment picture:
+
+- Routes R5a and R5b exist: `service_role` can call `_apply_order_payout` and both leaf functions directly. The leaf functions do not check disputes. **Step 1 of the containment draft (guard in `_apply_order_payout` only) does not stop R5b.** The guard must be in both leaf functions, or `service_role` EXECUTE on them must be revoked.
+- `orders.escrow_status` defaults to `holding`. The normal order flow reaches payout with no payment. Containment is therefore needed for ordinary use, not only for misuse.
+- The cron runs as `postgres` and has run 3,072 times, all succeeded, last at 13:00 UTC today.
+- Direct-write bypasses by app roles (B1 to B4) are closed.
+- `auto_cancel_undispatched` cancels unassigned orders after 48 hours only while payments are off. It is not a payout route.
+- No change was applied.

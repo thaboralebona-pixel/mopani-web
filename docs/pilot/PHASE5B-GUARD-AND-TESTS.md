@@ -254,3 +254,14 @@ Status of every test: **NOT EXECUTED.** Execution needs written staging approval
 See `OWNER-DECISIONS.md` rows 25 to 31.
 
 Nothing in this document authorises a production change, payment activation, merge or deployment.
+
+## Phase 5B-3 corrections (2026-11-10)
+
+Superseded by `PHASE5B-PRIVILEGE-AND-FUNCTION-REVIEW.md` where they differ:
+
+- Section 1: add routes R5a, R5b (service role calling payout functions directly) and R6 (SQL as `postgres`). The background sweep and the auto-cancel job were read: neither pays out, neither closes disputes.
+- Section 2: the cron job owner is `postgres`.
+- Section 3: bypasses B1 to B4 are closed for app roles. New bypass B9: service role calling the leaf payout functions, which skips the dispute check and any guard in `_apply_order_payout`.
+- Section 4: R5 is identified; the monitor discrepancy is a NULL-arithmetic bug.
+- Section 6: no function can resolve or close an escalated dispute. Only privileged SQL can change dispute 9. Route R5b ignores the dispute.
+- Section 7: add tests T17 (service role calls each leaf function directly; must be refused), T18 (order created by `create_order_v2` starts in a non-`holding` state once the new initial state exists), T19 (dispute insert by a user who is neither buyer nor seller is refused), T20 (monitor reports a correct seller ledger sum for a wallet with credits and no debits), T21 (`resolve_dispute` release branch on an open dispute: record whether it succeeds). All tests remain **not executed**.

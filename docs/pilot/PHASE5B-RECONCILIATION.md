@@ -90,3 +90,15 @@ Full reasoning in `PHASE5B-GUARD-AND-TESTS.md` section 4.
 - **Release channel for the seven orders: inferred.** No audit row of the R1 or R3 type exists before 1 October, consistent with R2 (direct RPC, no audit row). Log window not checked: the log tool covers 24 hours per query and the events are about four months old.
 - **Payment references:** `stripe_session_id` and `stripe_payment_intent` are NULL on all eight orders. No payments table was read in this pass.
 - No historical record, balance or ledger entry was changed.
+
+## Phase 5B-3 corrections (2026-11-10)
+
+These replace the Phase 5B-2 explanations where they differ. Evidence chain in `PHASE5B-PRIVILEGE-AND-FUNCTION-REVIEW.md` sections 5 and 6.
+
+- **R5 platform variance: identified.** The platform wallet row was created by migration `seed_and_backfill_platform_wallet` at 2026-07-21 14:57:17 UTC with the sum of platform revenue then recorded (108.00, inferred). Order 81 was released at 18:58 the same day under a payout version that credited unassigned marshal and driver legs (2.50 each) to the platform wallet with no revenue row. 108 + 5 + 2.50 + 2.50 = 118.00.
+- **R113 driver and marshal share: corrected.** 5.00 of it is the R5 above. The other 108.00 belongs to the six orders of 20 July: the payout of that date directed unassigned legs to platform wallet id 1, which did not exist yet, so the update matched no row and the amount was written nowhere (inferred; the 20 July function body was only partly read).
+- **Full tie-out:** 1,130.00 = 904.00 seller + 113.00 platform revenue + 5.00 platform wallet without revenue row + 108.00 written nowhere.
+- **Monitor 904 versus 0: identified.** NULL arithmetic in `private.v_wallet_integrity`: credits minus a NULL debit sum is NULL, then coalesced to 0. The view returns the same result today. The earlier `wallet_type` inference was wrong.
+- **Order 96 under current code:** seller 45.00, platform 5.00 (unassigned legs now go to the seller). The earlier 40 / 5 / 5 figure was wrong. Order 96 has not been released or changed.
+- **Order-level imbalance check never fired** because `v_ledger_imbalance_audit` excludes test orders, and all eight orders are test orders.
+- No balancing entry and no change to any record.

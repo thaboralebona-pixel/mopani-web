@@ -8,6 +8,20 @@
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
+-- REVIEW NOTES (Phase 5B-3, 2026-11-10; see PHASE5B-PRIVILEGE-AND-FUNCTION-REVIEW.md
+-- section 7). This draft is NOT sufficient as written:
+--   * service_role can EXECUTE _apply_route_payout and _apply_order_payout_legacy
+--     directly, skipping this function. The guard must be in both leaf functions,
+--     or service_role EXECUTE on them must be revoked.
+--   * RLS does not restrain service_role. Evidence must be written through one
+--     dedicated SECURITY DEFINER writer with its own role.
+--   * orders.escrow_status defaults to 'holding'. A new initial state is required.
+--   * Add: payer/order consistency, provider event id, signature-verified flag,
+--     settlement and refund lifecycle, append-only rule, forced RLS, test-order refusal.
+--   * refund_order must reverse recorded allocation rows, not a fixed split.
+-- -----------------------------------------------------------------------------
+
+-- -----------------------------------------------------------------------------
 -- 1. Verified payment evidence. Written ONLY by the signed payment-provider
 --    webhook under the service role. No app role can insert, update or delete.
 -- -----------------------------------------------------------------------------
