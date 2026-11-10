@@ -115,3 +115,27 @@ Button styling, copy tone, internal file layout, test structure.
 | 38  | Approve fixes to the integrity monitor and alert delivery (SEC-42, SEC-45) as a reviewed staging change                                                          | Approve direction                                                        | Open   |
 | 39  | Approve removing unused table privileges from `authenticated` (SEC-39) and adding an ownership check on dispute inserts (SEC-43)                                 | Approve direction                                                        | Open   |
 | 40  | Rotate the production database password as a payout credential (cron functions are callable by `postgres` only)                                                  | Owner action                                                             | Open   |
+
+## Owner decisions received 2026-11-10 (Phase 5B-3 review)
+
+| Area                                       | Decision                                            |
+| ------------------------------------------ | --------------------------------------------------- |
+| Decision 32: production order freeze       | **Approved** (operational; no SQL)                  |
+| Keep payments disabled                     | **Approved**                                        |
+| Unschedule payout cron                     | Approved in principle; **execution not authorised** |
+| Guard v2 architecture                      | Direction approved; current SQL not approved        |
+| Suspense allocation for missing recipients | Approved in principle                               |
+| Order 96 and dispute 9                     | Leave untouched                                     |
+| Historical wallet adjustments              | Not approved                                        |
+| Production or staging database changes     | Not authorised                                      |
+
+## Phase 5B-4 decisions requested
+
+| #   | Decision                                                                                                                                              | Recommendation                               | Status |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ------ |
+| 41  | Written approval to execute `remediation/PHASE5B4-containment-package-DRAFT.sql` on production (grants and schedule only; no function or data change) | Approve after owner review of the exact file | Open   |
+| 42  | Before 41: approve the WhatsApp reply wording change, or accept that "Confirm Receipt" will fail with a generic reply                                 | Change wording first                         | Open   |
+| 43  | Approve adding `pg_cron`, `pg_net`, `pgtap` and a `payments_live` row to staging, **after** staging has its own function URLs and secrets             | Approve in that order                        | Open   |
+| 44  | Approve authoring guard v3 SQL from `PHASE5B4-GUARD-ARCHITECTURE.md` for staging rehearsal                                                            | Approve                                      | Open   |
+| 45  | Phone ownership verification before any phone-based action has financial effect                                                                       | Approve as a pilot requirement               | Open   |
+| 46  | Staging write-test execution (T1 to T40)                                                                                                              | Separate authorisation after 43 and 44       | Open   |

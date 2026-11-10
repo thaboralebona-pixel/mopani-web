@@ -1,0 +1,158 @@
+-- =============================================================================
+-- PHASE 5B-4 CONTAINMENT PACKAGE (PRODUCTION) : DRAFT ONLY
+-- =============================================================================
+-- STATUS   : NOT EXECUTED. NOT AUTHORISED. Owner approved the direction in
+--            principle on 2026-11-10; execution needs separate written approval
+--            of this exact file.
+-- SUPERSEDES: PHASE5B-containment-DRAFT.sql (function-replacement approach) and
+--            PHASE5B-cron-containment.sql (cron only). Those remain for history.
+-- APPROACH : Grants and schedule only. NO function body is changed. NO table,
+--            order, dispute, wallet or ledger row is touched. Every statement
+--            has an exact inverse in section D.
+-- WHY      : Every route to a wallet credit depends on an EXECUTE grant or on
+--            the cron entry (evidence: PHASE5B4-READONLY-FINDINGS.md section 3).
+--            Removing those leaves only SQL run as postgres.
+--
+--   Route  Entry                                   Closed by
+--   R1     whatsapp-webhook -> confirm_order_delivery_by_phone   B4
+--   R2     authenticated RPC confirm_delivery                   B1
+--   R3     cron escrow-auto-release-72h                         A1
+--   R4a    service_role complete_order                          B5
+--   R4b    service_role resolve_dispute                         B6
+--   R5a    service_role _apply_order_payout                     B2
+--   R5b    service_role leaf payout functions                   B3
+--   R7     service_role public.auto_release_escrow() wrapper    B7
+--   R6     SQL as postgres                    NOT closed (owner credential)
+--
+-- PRE-STATE (read 2026-11-10 13:25 UTC, production):
+--   cron.job : jobid 2, 'escrow-auto-release-72h', '0 * * * *',
+--              'SELECT private.auto_release_escrow();', user postgres, active
+--   ACLs     : _apply_order_payout, _apply_order_payout_legacy, _apply_route_payout,
+--              auto_release_escrow (public) = {postgres=X, service_role=X}
+--              confirm_delivery: authenticated and service_role have EXECUTE
+--              confirm_order_delivery_by_phone, complete_order, resolve_dispute:
+--              service_role has EXECUTE; anon and authenticated do not
+-- =============================================================================
+
+-- -----------------------------------------------------------------------------
+-- SECTION 0. PRE-CHECK (read-only). Run first. Stop if anything differs from the
+-- pre-state above: the package was written against that state.
+-- -----------------------------------------------------------------------------
+-- select jobid, jobname, schedule, command, username, active
+--   from cron.job order by jobid;
+--
+-- select p.oid::regprocedure as fn, p.proacl
+--   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+--  where n.nspname = 'public'
+--    and p.proname in ('_apply_order_payout','_apply_order_payout_legacy','_apply_route_payout',
+--                      'auto_release_escrow','confirm_delivery','confirm_order_delivery_by_phone',
+--                      'complete_order','resolve_dispute')
+--  order by 1;
+--
+-- select id, status, escrow_status, buyer_confirmed from orders order by id;      -- record before
+-- select id, order_id, status from disputes order by id;                          -- record before
+-- select (select count(*) from wallet_transactions) wt,
+--        (select count(*) from platform_revenue) pr,
+--        (select balance from platform_wallet where id = 1) pw;                   -- record before
+
+-- -----------------------------------------------------------------------------
+-- SECTION A. Stop the scheduled release.
+-- -----------------------------------------------------------------------------
+-- begin;
+-- A1
+-- select cron.unschedule('escrow-auto-release-72h');
+
+-- -----------------------------------------------------------------------------
+-- SECTION B. Remove every non-owner EXECUTE that leads to a wallet credit.
+-- Internal calls are unaffected: each caller is SECURITY DEFINER owned by
+-- postgres, and the owner keeps EXECUTE.
+-- -----------------------------------------------------------------------------
+-- B1
+-- revoke execute on function public.confirm_delivery(bigint, text)
+--   from public, anon, authenticated, service_role;
+-- B2
+-- revoke execute on function public._apply_order_payout(bigint)
+--   from public, anon, authenticated, service_role;
+-- B3
+-- revoke execute on function public._apply_order_payout_legacy(bigint)
+--   from public, anon, authenticated, service_role;
+-- revoke execute on function public._apply_route_payout(bigint)
+--   from public, anon, authenticated, service_role;
+-- B4
+-- revoke execute on function public.confirm_order_delivery_by_phone(text, bigint, text)
+--   from public, anon, authenticated, service_role;
+-- B5
+-- revoke execute on function public.complete_order(bigint, text)
+--   from public, anon, authenticated, service_role;
+-- B6
+-- revoke execute on function public.resolve_dispute(bigint, text, text, text)
+--   from public, anon, authenticated, service_role;
+-- B7
+-- revoke execute on function public.auto_release_escrow()
+--   from public, anon, authenticated, service_role;
+-- commit;
+
+-- -----------------------------------------------------------------------------
+-- SECTION C. POST-CHECK (read-only). Every line must hold.
+-- -----------------------------------------------------------------------------
+-- C1  no release job
+-- select count(*) = 0 as ok from cron.job where jobname = 'escrow-auto-release-72h';
+--
+-- C2  no app or service role can execute any payout entry
+-- select p.oid::regprocedure as fn,
+--        has_function_privilege('anon', p.oid, 'EXECUTE')          as anon_x,
+--        has_function_privilege('authenticated', p.oid, 'EXECUTE') as auth_x,
+--        has_function_privilege('service_role', p.oid, 'EXECUTE')  as svc_x
+--   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+--  where n.nspname = 'public'
+--    and p.proname in ('_apply_order_payout','_apply_order_payout_legacy','_apply_route_payout',
+--                      'auto_release_escrow','confirm_delivery','confirm_order_delivery_by_phone',
+--                      'complete_order','resolve_dispute');
+--   -- expect anon_x = auth_x = svc_x = false on all eight rows
+--
+-- C3  nothing else changed: repeat the three "record before" queries from section 0
+--     and compare. Orders, disputes, wallet_transactions count, platform_revenue
+--     count and platform wallet balance must be identical.
+--
+-- C4  one hour later: no new release rows
+-- select id, performed_at, action, target_id from admin_audit_log
+--  where action in ('auto_release','auto_release_failed','delivery_confirmed_via_whatsapp')
+--    and performed_at > now() - interval '2 hours';
+--   -- expect zero rows
+
+-- -----------------------------------------------------------------------------
+-- SECTION D. ROLLBACK (exact inverse; restores the pre-state above).
+-- Do not run D1 until a payment-evidence guard is live: the next hourly run
+-- would release every eligible order.
+-- -----------------------------------------------------------------------------
+-- begin;
+-- grant execute on function public.confirm_delivery(bigint, text) to authenticated, service_role;
+-- grant execute on function public._apply_order_payout(bigint) to service_role;
+-- grant execute on function public._apply_order_payout_legacy(bigint) to service_role;
+-- grant execute on function public._apply_route_payout(bigint) to service_role;
+-- grant execute on function public.confirm_order_delivery_by_phone(text, bigint, text) to service_role;
+-- grant execute on function public.complete_order(bigint, text) to service_role;
+-- grant execute on function public.resolve_dispute(bigint, text, text, text) to service_role;
+-- grant execute on function public.auto_release_escrow() to service_role;
+-- commit;
+-- D1
+-- select cron.schedule('escrow-auto-release-72h', '0 * * * *', 'SELECT private.auto_release_escrow();');
+
+-- -----------------------------------------------------------------------------
+-- KNOWN EFFECTS AND LIMITS
+--  * WhatsApp "Confirm Receipt": the webhook's call is refused (permission denied).
+--    The webhook reply text must be reviewed first, so the buyer is not told that
+--    anyone was credited. Edge Function change, separate approval.
+--  * Delivered orders stay 'delivered' / 'holding'. Nothing is lost; eligibility
+--    is derived from delivered_at.
+--  * Disputes cannot be resolved through resolve_dispute while B6 is in force.
+--    Escalated disputes already cannot (it accepts status 'open' only).
+--  * private.run_regression_suite() calls the payout. It is postgres-only and is
+--    not closed by this package. It must not be run on production.
+--  * R6 remains: anyone with the production database password or dashboard SQL
+--    access can still pay out. Credential rotation is an owner action.
+--  * Withdrawal functions are outside this package (see PHASE4-01).
+--  * This package does not make the system safe to take orders. It removes the
+--    routes that exist today. The permanent control is the payment-evidence guard
+--    (PHASE5B4-GUARD-ARCHITECTURE.md).
+-- =============================================================================

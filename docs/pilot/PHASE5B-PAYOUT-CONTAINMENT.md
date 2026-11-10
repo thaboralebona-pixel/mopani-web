@@ -182,3 +182,10 @@ Read-only production evidence in `PHASE5B-PRIVILEGE-AND-FUNCTION-REVIEW.md` chan
 - Direct-write bypasses by app roles (B1 to B4) are closed.
 - `auto_cancel_undispatched` cancels unassigned orders after 48 hours only while payments are off. It is not a payout route.
 - No change was applied.
+
+## Phase 5B-4 update (2026-11-10)
+
+- The containment draft is now `remediation/PHASE5B4-containment-package-DRAFT.sql`: one cron unschedule and eight EXECUTE revokes, no function or data change, with pre-check, post-check and exact rollback. It supersedes the function-replacement draft and the cron-only draft. **Not executed. Not authorised.**
+- A further route exists: `public.auto_release_escrow()`, callable by the service role (R7). The package closes it.
+- Section 5 correction: staging has no `pg_net`, so its notification functions cannot call production as installed. The production URL is still in the staging code and must be replaced before `pg_net` is enabled there.
+- Permanent control: `PHASE5B4-GUARD-ARCHITECTURE.md`.

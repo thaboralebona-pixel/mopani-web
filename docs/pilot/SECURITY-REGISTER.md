@@ -291,3 +291,15 @@ New entries:
 - **SEC-44: Service role can call the leaf payout functions directly.** `_apply_route_payout` and `_apply_order_payout_legacy` are executable by `service_role` and do not check disputes. A guard in `_apply_order_payout` alone is bypassed. **Confirmed.** High.
 - **SEC-45: Wallet integrity view has a NULL-arithmetic bug.** Seller ledger sum is reported as 0 whenever a wallet has no debit rows. **Confirmed** (definition and current output).
 - **SEC-46: Escalated disputes have no resolution path.** `resolve_dispute` accepts only `open`; its release branch also appears unable to pass the payout's own dispute check. **Confirmed** (definitions); the second part is inferred, untested.
+
+## Phase 5B-4 additions (2026-11-10, read-only on production and staging)
+
+Evidence: `PHASE5B4-READONLY-FINDINGS.md`.
+
+- **SEC-47: Service-role wrapper `public.auto_release_escrow()` runs the automatic release on demand.** ACL `postgres`, `service_role`. Unscheduling the cron does not remove it. Present on staging too. **Confirmed.** High.
+- **SEC-48: Phone identity is unverified and not unique after normalisation.** Users set their own `profiles.phone`; uniqueness is on raw text; lookups use `LIMIT 1`. A mistyped or unowned number hands "Confirm Receipt" to a stranger. Production currently has no phone numbers stored, so the route is inert today. **Confirmed.** High before WhatsApp confirmation is used.
+- **SEC-49: Phone numbers stored in plain text in `admin_audit_log`** by the WhatsApp functions. **Confirmed** (definitions). Medium.
+- **SEC-50: Staging cannot rehearse scheduled or outbound behaviour.** No `pg_cron`, `pg_net`, `pgtap`, and no `payments_live` row. All 30 fingerprinted functions and their grants match production. **Confirmed.**
+- **SEC-26 corrected.** Staging's notification functions contain the production URL, but `pg_net` is not installed on staging, so no call can be made as installed. The coupling is latent and becomes live if `pg_net` is enabled.
+- **Route payout (`_apply_route_payout`) confirmed** to have no payment check, no dispute check and no check that pooled wallet rows were actually updated. It does refuse orders with no driver. Unassigned marshal share goes to pooled row id 1 with a NULL recipient.
+- `admin_force_cancel` **confirmed** admin-gated; closes that unknown.

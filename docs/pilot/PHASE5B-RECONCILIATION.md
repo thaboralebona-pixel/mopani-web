@@ -102,3 +102,7 @@ These replace the Phase 5B-2 explanations where they differ. Evidence chain in `
 - **Order 96 under current code:** seller 45.00, platform 5.00 (unassigned legs now go to the seller). The earlier 40 / 5 / 5 figure was wrong. Order 96 has not been released or changed.
 - **Order-level imbalance check never fired** because `v_ledger_imbalance_audit` excludes test orders, and all eight orders are test orders.
 - No balancing entry and no change to any record.
+
+## Phase 5B-4 note (2026-11-10)
+
+The R5.00 and the R108.00 have different explanations and are kept separate: R5.00 is an unrecorded platform-wallet credit from order 81 (identified); R108.00 was written nowhere for the six orders of 20 July (inferred; the function version of that date and the missing wallet row are unresolved evidence gaps). No balancing entry or wallet adjustment has been made, and none is approved.
