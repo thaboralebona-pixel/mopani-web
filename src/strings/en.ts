@@ -18,8 +18,8 @@ export const strings2 = {
   catalogDropped: 'Some listings could not be shown because their details are incomplete.',
   addToBasket: 'Add to basket',
   stockLabel: 'In stock',
-  weightKnown: 'About {kg} kg each',
-  weightMissing: 'No weight recorded. Counted as 5 kg for delivery.',
+  weightKnown: "Seller's average: about {kg} kg each",
+  weightMissing: 'No weight recorded. Each line of this product counts as 5 kg for delivery.',
   basketHeading: 'Your basket',
   basketEmpty: 'Your basket is empty.',
   increase: 'Add one',
@@ -38,7 +38,12 @@ export const strings2 = {
   quoteCard: 'Card processing fee',
   quoteTotal: 'Total',
   quoteShare: 'Delivery is about {pct}% of the product value.',
-  quoteWeight: 'Weight: {kg} kg. Delivery is charged for {blocks} block(s) of up to 5 kg.',
+  quoteWeight:
+    'Billable weight: {kg} kg. Delivery is charged for {blocks} block(s) of up to 5 kg. Any line with no recorded weight counts as 5 kg.',
+  quoteNotLive: 'Payments are not available. This total is not a charge.',
+  quoteWorking: 'Working out your total…',
+  basketNoTotal:
+    'Your total needs sign-in, which is not available yet. The product subtotal is for reference only. Delivery is not included.',
   quoteNeedsSignIn:
     'Your total cannot be worked out yet, because sign-in codes cannot be sent yet. You can keep adding items.',
   quoteBelowMinimum:

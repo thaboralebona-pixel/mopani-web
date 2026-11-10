@@ -36,6 +36,7 @@ interface State {
   basketNotice: string | null;
   quote: Quote | null;
   quoteError: string | null;
+  quoteLoading: boolean;
 }
 
 const state: State = {
@@ -47,6 +48,7 @@ const state: State = {
   basketNotice: null,
   quote: null,
   quoteError: null,
+  quoteLoading: false,
 };
 
 const basketErrorText: Record<BasketError, string> = {
@@ -138,26 +140,41 @@ const handlers: Handlers = {
     render();
   },
   async onGetTotal() {
+    // Ignore repeat taps while a quote is already on its way.
+    if (state.quoteLoading) return;
     if (!SIGN_IN_ENABLED || !client) {
+      state.quote = null;
       state.quoteError = s.quoteNeedsSignIn;
       render();
       return;
     }
-    // Calls the existing server function with the items and the pilot destination. The server sets every amount.
-    const { data, error } = await client.rpc('quote_order', {
-      p_items: toQuoteItems(state.basket),
-      p_destination: PILOT_DESTINATION,
-    });
-    if (error) {
-      const key: QuoteErrorKey = mapQuoteError(error.message ?? '');
-      state.quote = null;
-      state.quoteError = quoteErrorText[key];
-    } else {
-      const parsed = parseQuote(data);
-      state.quote = parsed;
-      state.quoteError = parsed ? null : s.quoteGeneric;
-    }
+    state.quoteLoading = true;
+    state.quote = null;
+    state.quoteError = null;
     render();
+    try {
+      // Calls the existing server function with the items and the pilot destination. The server sets every amount.
+      const { data, error } = await client.rpc('quote_order', {
+        p_items: toQuoteItems(state.basket),
+        p_destination: PILOT_DESTINATION,
+      });
+      if (error) {
+        const key: QuoteErrorKey = mapQuoteError(error.message ?? '');
+        state.quote = null;
+        state.quoteError = quoteErrorText[key];
+      } else {
+        const parsed = parseQuote(data);
+        state.quote = parsed;
+        state.quoteError = parsed ? null : s.quoteGeneric;
+      }
+    } catch {
+      // Network failure: never show a total that was not confirmed by the server.
+      state.quote = null;
+      state.quoteError = s.quoteGeneric;
+    } finally {
+      state.quoteLoading = false;
+      render();
+    }
   },
 };
 
@@ -183,7 +200,14 @@ function render(): void {
       : noticeSection(s.catalogLoadError, true)
   );
   nodes.push(routesSection(state.routes));
-  nodes.push(basketSection(state.basket, handlers, SIGN_IN_ENABLED && state.basket.length > 0));
+  nodes.push(
+    basketSection(
+      state.basket,
+      handlers,
+      SIGN_IN_ENABLED && state.basket.length > 0,
+      state.quoteLoading
+    )
+  );
   if (state.basketNotice) nodes.push(noticeSection(state.basketNotice, true));
   if (state.quote) nodes.push(quoteSection(state.quote));
   if (state.quoteError) nodes.push(noticeSection(state.quoteError, true));

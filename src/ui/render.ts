@@ -86,7 +86,8 @@ export function routesSection(routes: readonly Route[] | null): HTMLElement {
 export function basketSection(
   lines: readonly BasketLine[],
   h: Handlers,
-  canGetTotal: boolean
+  canGetTotal: boolean,
+  loading = false
 ): HTMLElement {
   const body: HTMLElement[] = [];
   if (lines.length === 0) {
@@ -110,8 +111,11 @@ export function basketSection(
       el('p', 'meta', s.subtotalNote)
     );
     const getTotal = button(s.getTotal, h.onGetTotal, 'btn btn-primary');
-    getTotal.disabled = !canGetTotal;
+    getTotal.disabled = !canGetTotal || loading;
+    getTotal.setAttribute('aria-busy', String(loading));
     body.push(getTotal);
+    if (!canGetTotal) body.push(el('p', 'notice', s.basketNoTotal));
+    if (loading) body.push(el('p', 'notice', s.quoteWorking));
   }
   return section(s.basketHeading, body);
 }
@@ -127,6 +131,7 @@ export function quoteSection(quote: Quote): HTMLElement {
   const body: HTMLElement[] = rows.map(([label, cents]) =>
     el('p', 'quote-row', `${label}: ${formatRand(cents)}`)
   );
+  body.push(el('p', 'notice', s.quoteNotLive));
   if (quote.weightKg !== null && quote.blocks !== null) {
     body.push(
       el(

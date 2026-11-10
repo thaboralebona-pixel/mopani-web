@@ -76,3 +76,14 @@ a.button {
     padding: var(--space-4) var(--space-4);
   }
 }
+
+/* Long product names, weights and route lines wrap instead of pushing the page wider than the screen. */
+body,
+.product-name,
+.meta,
+.route,
+.subtotal,
+.quote-row,
+.notice {
+  overflow-wrap: anywhere;
+}

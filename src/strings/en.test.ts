@@ -12,6 +12,10 @@ const FORBIDDEN = [
   'items with a photo sell more',
   'seller and driver have been credited',
   'someone will contact you shortly',
+  'weighed',
+  'verified weight',
+  'certified',
+  'guaranteed',
 ];
 
 const ALL = Object.values({ ...strings, ...strings2 }) as string[];
