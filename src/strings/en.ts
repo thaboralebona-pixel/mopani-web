@@ -36,6 +36,7 @@ export const strings2 = {
   quoteCard: 'Card processing fee',
   quoteTotal: 'Total',
   quoteShare: 'Delivery is about {pct}% of the product value.',
+  quoteWeight: 'Weight: {kg} kg. Delivery is charged for {blocks} block(s) of up to 5 kg.',
   quoteNeedsSignIn:
     'Your total cannot be worked out yet, because sign-in codes cannot be sent yet. You can keep adding items.',
   quoteBelowMinimum:

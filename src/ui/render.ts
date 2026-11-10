@@ -122,6 +122,17 @@ export function quoteSection(quote: Quote): HTMLElement {
   const body: HTMLElement[] = rows.map(([label, cents]) =>
     el('p', 'quote-row', `${label}: ${formatRand(cents)}`)
   );
+  if (quote.weightKg !== null && quote.blocks !== null) {
+    body.push(
+      el(
+        'p',
+        'meta',
+        s.quoteWeight
+          .replace('{kg}', String(quote.weightKg))
+          .replace('{blocks}', String(quote.blocks))
+      )
+    );
+  }
   if (share !== null) body.push(el('p', 'meta', s.quoteShare.replace('{pct}', share.toFixed(1))));
   return section(s.quoteHeading, body);
 }

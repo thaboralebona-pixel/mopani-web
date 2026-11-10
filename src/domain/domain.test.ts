@@ -101,6 +101,15 @@ describe('quote parsing', () => {
     expect(parseQuote({ ...good, total: '341.00' })).toBeNull();
   });
 
+  it('carries weight and 5 kg blocks when the server sends them', () => {
+    const q = parseQuote({ ...good, weight_kg: 12.5, blocks: 3 });
+    expect(q?.weightKg).toBe(12.5);
+    expect(q?.blocks).toBe(3);
+    const none = parseQuote({ ...good, blocks: 0, weight_kg: 'heavy' });
+    expect(none?.blocks).toBeNull();
+    expect(none?.weightKg).toBeNull();
+  });
+
   it('refuses a missing or malformed field', () => {
     expect(parseQuote({ ...good, seller_id: '' })).toBeNull();
     expect(parseQuote({ ...good, delivery_fee: 'free' })).toBeNull();
