@@ -1,29 +1,178 @@
-# Security register (read-only review, 10 Nov 2026)
+# Security remediation register
 
-Evidence: staging and production definitions read through authorised read-only queries. Nothing was changed in Supabase.
-"Blocks production" means the item must be fixed or explicitly accepted by the owner before a real order.
+Version: Phase 3 (10 Nov 2026). Supersedes the SEC-01 to SEC-13 table from commit `e4a5997`.
 
-| ID     | Severity              | Finding                                                                                                                                                                | Evidence                                                                                                                                    | Potential impact                                                                                              | Recommended correction                                                                              | Staging test needed | Owner approval | Blocks production    |
-| ------ | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------- | -------------- | -------------------- |
-| SEC-01 | High                  | `request_withdrawal_v2` is callable by any signed-in seller who is KYC-verified. It is not gated by `payments_live`.                                                   | Production and staging: `authenticated` has EXECUTE. Function debits `available_balance`, adds a pending withdrawal and writes a debit row. | Creates withdrawal liabilities while payments are off. Withdrawal is a money feature that is not approved.    | Revoke EXECUTE from `authenticated`, or gate on `payments_live` and block until approved.           | Yes                 | Yes            | Yes                  |
-| SEC-02 | High (privacy)        | `public_driver_profiles` and `public_marshal_profiles` run with owner rights (`security_invoker=false`) and are readable by any signed-in user.                        | View definitions: expose `profile_id` (the auth user ID), `taxi_partner_id`, rating, vehicle type, load limit, total deliveries.            | Any signed-in user can link a verified driver or marshal to an auth account and see their rating and partner. | Remove `profile_id` from the views, or set `security_invoker=true` with a narrow policy.            | Yes                 | Yes            | Yes                  |
-| SEC-03 | Medium                | `seller_public` is readable by anonymous visitors and exposes the seller's UUID, display name and district.                                                            | Anon SELECT = true. View runs with owner rights.                                                                                            | Seller UUIDs are public. Low direct risk; enables linking.                                                    | Remove `id` from the view and use a separate public slug.                                           | Yes                 | Yes            | No                   |
-| SEC-04 | Medium                | Production `products` still has the old read rule (`public can read`, unrestricted). Staging is fixed.                                                                 | Production policy list read 10 Nov.                                                                                                         | Unlisted and draft products are readable by anyone.                                                           | Apply the staging v2 migration to production after approval.                                        | Done on staging     | Yes            | Yes                  |
-| SEC-05 | Medium                | Production `orders` still lets sellers read full order rows, and `deliveries` still exposes driver and marshal IDs and proof photos to participants. Staging is fixed. | Production policy list read 10 Nov.                                                                                                         | Buyer addresses visible to sellers. Driver and marshal identity visible to buyers.                            | Apply staging v2 migration to production after approval.                                            | Done on staging     | Yes            | Yes                  |
-| SEC-06 | Medium                | `request_subscription` is callable by any signed-in seller. It inserts a `pending_payment` row.                                                                        | Definer; checks `auth.uid()`; does not activate.                                                                                            | Creates subscription requests for a feature that is not approved.                                             | Revoke EXECUTE from `authenticated` until subscriptions are approved.                               | Yes                 | Yes            | Yes (legacy feature) |
-| SEC-07 | Medium-High (privacy) | `sa_id_is_youth` is callable by anonymous visitors and takes an ID number as input.                                                                                    | Invoker, EXECUTE granted to anon.                                                                                                           | Anyone can submit ID numbers and learn an age-related result. POPIA exposure.                                 | Revoke EXECUTE from `anon` and `authenticated`. Remove the function if no use is approved.          | Yes                 | Yes            | Yes                  |
-| SEC-08 | Low                   | `generate_referral_code` is callable by anonymous visitors.                                                                                                            | Invoker, EXECUTE granted to anon.                                                                                                           | Generates codes only. Low impact.                                                                             | Revoke from `anon` if referrals are not in the pilot.                                               | No                  | Yes            | No                   |
-| SEC-09 | Low                   | `admin_force_cancel` and `mark_payout_settled` are callable by signed-in users.                                                                                        | Both check `is_admin()`. `is_admin()` checks an active row in `admins` for `auth.uid()`.                                                    | Protected by the admin check. Risk is only if `admins` is wrongly populated.                                  | Keep. Audit who is in `admins`. Revoke from `authenticated` anyway if these are admin-console only. | No                  | Yes            | No                   |
-| SEC-10 | Info                  | Trigger functions `charge_listing_fee` and `enforce_kyc_on_withdrawal` show anon EXECUTE.                                                                              | Trigger functions cannot be called directly.                                                                                                | None in practice.                                                                                             | No action.                                                                                          | No                  | No             | No                   |
-| SEC-11 | Medium (legal)        | `public_profiles` exposes a `youth_owned_verified` flag, derived from KYC.                                                                                             | No anon or authenticated grants on the view.                                                                                                | Youth-owned claims are not approved (copy test forbids them).                                                 | Remove the flag from any public surface until counsel approves it.                                  | No                  | Yes            | No                   |
-| SEC-12 | High (operational)    | Credentials pasted in past chat must be treated as exposed: the production database password and the staging webhook secret.                                           | Chat history.                                                                                                                               | Unauthorised access to the database and notification webhook.                                                 | Rotate both. Confirm no secret is in source control.                                                | No                  | Owner action   | Yes                  |
-| SEC-13 | Medium                | GitHub account 2FA not confirmed.                                                                                                                                      | Owner note.                                                                                                                                 | Repository takeover risk.                                                                                     | Enable 2FA before 8 December 2026.                                                                  | No                  | Owner action   | No (deadline)        |
+Method: read-only queries against staging (`mopani-staging`) and production definitions, as recorded in each entry. Nothing in this register is marked fixed unless the change was applied and tested. Staging changes are not production changes.
 
-Production and staging differences established by read-only query:
+Status vocabulary:
 
-- `quote_order`: identical definition (same hash) on both.
-- Products, orders and deliveries policies: production has the old rules; staging has the approved v2 rules.
-- `request_withdrawal_v2`: callable by `authenticated` on both.
-- The staging-only helper functions `seller_sales()` and `buyer_delivery()` do not exist on production.
+- **Confirmed**: reproduced by a read-only query or a rolled-back dry run, with the query result cited.
+- **Unverified**: a concern from reading code or notes that has not been checked against the live definition.
+- **Fixed (staging)**: change applied to staging and tested there. Production still exposed unless stated.
+- **Production-blocking**: must be fixed or explicitly accepted in writing by the owner before any real order.
 
-Not yet verified: the full definition of `request_subscription` side effects beyond the insert shown; the contents of `admins`; the production storage bucket policies.
+---
+
+## Part A: Confirmed
+
+### SEC-01 — `request_withdrawal_v2` callable by sellers while payments are off
+
+- **Severity:** High (financial). **Confirmed.**
+- **Environment:** staging and production (both show `authenticated` EXECUTE, 10 Nov).
+- **Exact object:** `public.request_withdrawal_v2(numeric)`, SECURITY DEFINER. Also `public.seller_withdrawals` (authenticated has INSERT/UPDATE/DELETE grants, limited only by RLS).
+- **Evidence:** grant query shows `auth_exec = true`, `anon_exec = false`. Function body: no idempotency key, no `payments_live` check, moves `available_balance` to pending and writes a debit row. Full analysis: `docs/pilot/WITHDRAWAL-CALL-CHAIN.md`.
+- **Exploitation scenario:** a KYC-verified seller calls the RPC directly through the API, repeatedly, creating pending withdrawal liabilities. There is no cancel path, so the balance stays locked. A second settlement path (`approve_withdrawal` vs `mark_payout_settled`, which debit different buckets and are not linked) could settle the same money twice if an admin uses both.
+- **Business impact:** creates financial liabilities for a money feature the owner has not approved. Risk of double settlement and seller disputes.
+- **Recommended fix:** staging draft `docs/pilot/remediation/SEC-01-withdrawal-lockdown.sql` (revoke EXECUTE on `request_withdrawal_v2` from public, anon, authenticated; revoke write grants on `seller_withdrawals` from authenticated). Separate decision on the settlement paths.
+- **Dependencies:** dependency check on `trigger_create_wallet` before any `seller_wallets` or `seller_kyc` grant change (excluded from the draft). Owner approval.
+- **Verification:** dry run inside a transaction on staging, rolled back: after revoke, `auth_can_withdraw_after = false`, `auth_update_withdrawals_after = false`. Not yet applied and committed.
+- **Rollback:** `grant execute on function public.request_withdrawal_v2(numeric) to authenticated;` and re-grant table privileges as they were.
+- **Production-blocking:** **Yes.**
+- **Status:** Confirmed. Draft only. Not fixed.
+
+### SEC-02 — Driver and marshal public views expose personal data to any signed-in user
+
+- **Severity:** High (privacy). **Confirmed.**
+- **Environment:** staging (checked). Production not separately checked in this pass; earlier note reports the same view definitions.
+- **Exact objects:** `public.public_driver_profiles`, `public.public_marshal_profiles`. Owner `postgres`, `security_invoker=false`, grants: authenticated SELECT true, anon SELECT false.
+- **Evidence:** grant query above. Column review: `docs/pilot/PRIVACY-VIEWS-REVIEW.md`. Exposed: `profile_id` (auth user ID), `taxi_partner_id`, `rating`, `total_deliveries`, `active`, `vehicle_type` (driver only), `max_load_kg` (driver only).
+- **Exploitation scenario:** a signed-in buyer or seller queries the views and matches `profile_id` to build a list of drivers and marshals with partner affiliation and performance rating.
+- **Business impact:** privacy breach of drivers and marshals (POPIA exposure), and disclosure of taxi association membership.
+- **Recommended fix:** draft `docs/pilot/remediation/SEC-02-privacy-views.sql` (revoke SELECT from authenticated and anon). Before any role needs driver or marshal names, add narrow `SECURITY DEFINER` functions returning only the agreed columns for one order.
+- **Dependencies:** dependency check passed on staging (no dependent views, functions or frontend references). Re-check on production before apply.
+- **Verification:** `has_table_privilege` returns false for authenticated and anon after apply; catalogue and quote still load.
+- **Rollback:** `grant select on public.public_driver_profiles, public.public_marshal_profiles to authenticated;`
+- **Production-blocking:** **Yes.**
+- **Status:** Confirmed. Draft only.
+
+### SEC-03 — `sa_id_is_youth` callable anonymously with an ID number
+
+- **Severity:** High (privacy / POPIA). **Confirmed.**
+- **Environment:** staging (checked). Production: not checked in this pass.
+- **Exact object:** `public.sa_id_is_youth(text)`, SECURITY INVOKER, IMMUTABLE.
+- **Evidence:** `anon_exec = true`, `auth_exec = true`. Body: reads six digits as a date of birth, returns a boolean for age 18–35 or NULL. No table write, no logging statement inside the function.
+- **Exploitation scenario:** an anonymous caller submits an ID number (or enumerates date ranges) to learn the age band. The caller sends the full ID number over the API, so it reaches database and gateway logs (gateway logging unverified).
+- **Business impact:** no pilot requirement; any use with real ID numbers is unnecessary exposure of personal information.
+- **Recommended fix:** draft `docs/pilot/remediation/SEC-03-sa-id-youth-revoke.sql`. Keep the function; revoke from public, anon, authenticated. Remove only with owner approval.
+- **Dependencies:** dependency search for references in functions, views, triggers and policies (to be run before apply).
+- **Verification:** `has_function_privilege` false for anon and authenticated after apply.
+- **Rollback:** re-grant to anon and authenticated.
+- **Production-blocking:** **Yes.**
+- **Status:** Confirmed. Draft only.
+
+### SEC-04 — `request_subscription` callable by sellers
+
+- **Severity:** Medium. **Confirmed** (grant). Side effects **unverified** beyond the insert.
+- **Environment:** staging (checked). Production: not checked in this pass.
+- **Exact object:** `public.request_subscription(text)`, SECURITY DEFINER, checks `auth.uid()`, writes a pending payment row.
+- **Evidence:** `auth_exec = true`. Staging subscription table has 0 rows.
+- **Exploitation scenario:** a seller creates subscription payment requests for a plan that is not approved.
+- **Business impact:** creates pending obligations for an unapproved revenue feature.
+- **Recommended fix:** draft `docs/pilot/remediation/SEC-04-subscription-revoke.sql`.
+- **Dependencies:** read the full body first (unverified concern below).
+- **Verification:** `has_function_privilege('authenticated', ...)` returns false after apply.
+- **Rollback:** re-grant to authenticated.
+- **Production-blocking:** Yes, for the pilot (legacy feature must not be live).
+- **Status:** Confirmed grant exposure. Draft only.
+
+### SEC-05 — `seller_public` readable by anonymous visitors
+
+- **Severity:** Low–Medium. **Confirmed** (grant). Column list **unverified** in this pass.
+- **Environment:** staging. Production: not checked in this pass.
+- **Exact object:** `public.seller_public` (view, owner `postgres`, default invoker mode, so the view runs as owner).
+- **Evidence:** `anon_select = true`, `auth_select = true`.
+- **Exploitation scenario:** an anonymous caller enumerates seller identifiers and display names and districts.
+- **Business impact:** limited, but it exposes seller IDs that enable linking across other data.
+- **Recommended fix:** confirm the exact column list. If it contains an internal UUID, replace with a public slug. Keep the anon grant only for the columns the public catalogue needs.
+- **Dependencies:** frontend does not query this view (verified: `src/` queries only `products`, `delivery_routes`, `quote_order`).
+- **Verification:** column listing before and after.
+- **Rollback:** restore prior definition.
+- **Production-blocking:** No, unless the view exposes contact details. Owner to confirm.
+- **Status:** Confirmed grant. Column content unverified.
+
+### SEC-06 — Production `products`, `orders` and `deliveries` still use the old policies
+
+- **Severity:** High (for buyer and seller privacy). **Confirmed** on production (policy list read 10 Nov).
+- **Environment:** production exposed. Staging fixed.
+- **Exact objects:** `products` (unrestricted public read), `orders` (sellers read full order rows, including buyer address), `deliveries` (exposes driver and marshal IDs and proof photos to participants).
+- **Evidence:** production policy list. Staging v2 migration applied 10 Nov; role tests passed inside rolled-back transactions (anon sees only listed products; sellers read sales via `seller_sales()`; buyers read delivery status via `buyer_delivery()` without driver IDs).
+- **Exploitation scenario:** an unlisted or draft product is readable by anyone. A seller reads buyer delivery addresses. A buyer learns driver and marshal identity.
+- **Business impact:** buyer address disclosure to sellers; driver and marshal identity disclosure.
+- **Recommended fix:** apply the staged v2 migration to production after owner approval, in the same order as tested, with the staging test script re-run afterwards.
+- **Dependencies:** `seller_sales()` and `buyer_delivery()` must exist on production first (they do not, per staging comparison).
+- **Verification:** repeat the role test set on production after apply (read-only checks plus rolled-back transaction).
+- **Rollback:** restore the prior policies from the captured policy list.
+- **Production-blocking:** **Yes.**
+- **Status:** Fixed (staging). Production not fixed.
+
+### SEC-07 — Production withdrawal and related grants unchanged
+
+- Merged into SEC-01 (same object, same environment).
+
+### SEC-08 — `is_admin()` callable by anonymous visitors
+
+- **Severity:** Info. **Confirmed** (grant).
+- **Evidence:** `anon_exec = true`, `auth_exec = true`.
+- **Exploitation scenario:** an anonymous caller learns only whether their own (null) identity is an admin. No data exposed.
+- **Recommended fix:** none required for the pilot; revoke from anon as hygiene after review of all callers.
+- **Production-blocking:** No.
+- **Status:** Confirmed. Low concern.
+
+### SEC-09 — Trigger functions with anon EXECUTE
+
+- **Severity:** Info. **Confirmed** (grant). Trigger functions cannot be called as RPCs with normal arguments.
+- **Objects:** `charge_listing_fee()`, `enforce_kyc_on_withdrawal()`.
+- **Recommended fix:** none; retain.
+- **Production-blocking:** No.
+
+### SEC-10 — Admin-named functions callable by signed-in users
+
+- **Severity:** Low. **Confirmed** (grant). Bodies **confirmed** to check `is_admin()` for `admin_approve`, `admin_set_driver_fixed_fee`, `admin_set_driver_tier_fees`, `admin_payout_summary`, `admin_pending_payouts`, `mark_payout_settled`.
+- **Object:** `admin_force_cancel()` exists with `auth_exec = true`; its body was **not** read in this pass.
+- **Exploitation scenario:** protected by the admin check, unless `admins` is wrongly populated.
+- **Recommended fix:** revoke from authenticated where the function is admin-console only, after the body is read. Audit `admins` contents.
+- **Production-blocking:** No, if `admins` is verified.
+
+---
+
+## Part B: Unverified concerns (not confirmed; do not treat as findings)
+
+| ID    | Concern                                                                                                                              | What is needed to verify                                                    |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| UV-01 | `request_subscription` may have side effects beyond the pending-payment insert.                                                      | Read full function body and all triggers on the subscription table.         |
+| UV-02 | Contents of the `admins` table (who holds admin rights).                                                                             | Read-only count and list, with owner confirmation of expected names.        |
+| UV-03 | Production storage bucket policies (KYC documents, proof photos).                                                                    | Read storage policies on production.                                        |
+| UV-04 | `public_profiles` exposes `youth_owned_verified`. Earlier notes say no grant to anon or authenticated, but no column check was made. | Confirm view grants and whether the flag is reachable through another view. |
+| UV-05 | `seller_kyc` stores ID number and bank details in plaintext, readable by the owning seller.                                          | Column types and RLS on `seller_kyc`. Encryption design needed.             |
+| UV-06 | Gateway (API) request logging may retain request bodies, including ID numbers sent to SEC-03.                                        | Owner check of Supabase log retention settings.                             |
+| UV-07 | `approve_withdrawal` comment says "funds actually leave the wallet now"; this is believed inaccurate.                                | Read full body and any payment integration (none expected).                 |
+
+---
+
+## Part C: Credentials and account (owner actions)
+
+### SEC-11 — Exposed credentials
+
+- **Severity:** High (operational). **Confirmed** that credentials were pasted into chat, which counts as exposure.
+- **Environment:** production database password; staging webhook secret.
+- **Recommended fix:** rotate both immediately. Confirm no secret is in source control (search repository). Do not paste replacements into chat.
+- **Owner action.** Production-blocking: **Yes.**
+- **Status:** Open. Owner.
+
+### SEC-12 — GitHub 2FA
+
+- **Severity:** Medium. Open. Owner action. Deadline 8 December 2026. Production-blocking: No (deadline).
+
+---
+
+## Summary
+
+| Status                                      | Count | Items                                                             |
+| ------------------------------------------- | ----- | ----------------------------------------------------------------- |
+| Production-blocking, confirmed, draft ready | 4     | SEC-01, SEC-02, SEC-03, SEC-04 (with SEC-05 pending column check) |
+| Production-blocking, fixed on staging only  | 1     | SEC-06                                                            |
+| Production-blocking, owner action           | 1     | SEC-11                                                            |
+| Confirmed, low or info                      | 4     | SEC-05 (column check open), SEC-08, SEC-09, SEC-10                |
+| Unverified                                  | 7     | UV-01 to UV-07                                                    |
+
+No item is marked fixed in production.
