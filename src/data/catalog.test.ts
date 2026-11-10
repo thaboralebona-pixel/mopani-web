@@ -34,6 +34,16 @@ describe('parseProducts', () => {
     expect(dropped).toBe(6);
   });
 
+  it('carries the recorded unit weight, and leaves it null when missing or zero', () => {
+    const { products } = parseProducts([
+      row({ avg_unit_weight_kg: '0.500' }),
+      row({ id: 11, avg_unit_weight_kg: null }),
+      row({ id: 12, avg_unit_weight_kg: '0' }),
+      row({ id: 13 }),
+    ]);
+    expect(products.map((p) => p.weightKg)).toEqual([0.5, null, null, null]);
+  });
+
   it('returns nothing for a non-array response', () => {
     expect(parseProducts({ not: 'an array' })).toEqual({ products: [], dropped: 0 });
   });

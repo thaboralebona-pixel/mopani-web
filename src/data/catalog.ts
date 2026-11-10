@@ -10,6 +10,8 @@ export interface Product {
   readonly stock: number;
   readonly district: string | null;
   readonly category: string | null;
+  /** Average weight of one unit in kg, or null when none is recorded. A null weight is counted as 5 kg for delivery. */
+  readonly weightKg: number | null;
 }
 
 export interface Route {
@@ -25,7 +27,13 @@ export interface ProductFilter {
 }
 
 const PRODUCT_COLUMNS =
-  'id, seller_id, name, price, unit_of_measure, stock_quantity, district, category';
+  'id, seller_id, name, price, unit_of_measure, stock_quantity, district, category, avg_unit_weight_kg';
+
+/** Returns a positive finite number, or null for anything else (including zero and missing values). */
+function positiveNumber(v: unknown): number | null {
+  const n = typeof v === 'string' && v.trim() !== '' ? Number(v) : v;
+  return typeof n === 'number' && Number.isFinite(n) && n > 0 ? n : null;
+}
 
 function nonEmptyString(v: unknown): string | null {
   return typeof v === 'string' && v.trim() !== '' ? v.trim() : null;
@@ -69,6 +77,7 @@ export function parseProducts(rows: unknown): { products: Product[]; dropped: nu
       stock: stock as number,
       district: nonEmptyString(r['district']),
       category: nonEmptyString(r['category']),
+      weightKg: positiveNumber(r['avg_unit_weight_kg']),
     });
   }
   return { products, dropped };

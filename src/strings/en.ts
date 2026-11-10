@@ -18,6 +18,8 @@ export const strings2 = {
   catalogDropped: 'Some listings could not be shown because their details are incomplete.',
   addToBasket: 'Add to basket',
   stockLabel: 'In stock',
+  weightKnown: 'About {kg} kg each',
+  weightMissing: 'No weight recorded. Counted as 5 kg for delivery.',
   basketHeading: 'Your basket',
   basketEmpty: 'Your basket is empty.',
   increase: 'Add one',

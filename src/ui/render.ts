@@ -53,6 +53,11 @@ export function catalogSection(
       el('p', 'product-name', p.name),
       el('p', 'meta', `${formatRand(p.unitPriceCents)} per ${p.unit}`),
       el('p', 'meta', `${s.stockLabel}: ${p.stock}${p.district ? ` · ${p.district}` : ''}`),
+      el(
+        'p',
+        'meta',
+        p.weightKg !== null ? s.weightKnown.replace('{kg}', String(p.weightKg)) : s.weightMissing
+      ),
       button(s.addToBasket, () => h.onAdd(p.id), 'btn btn-primary')
     );
     list.append(item);
