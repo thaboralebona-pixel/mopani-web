@@ -16,6 +16,7 @@ import {
   basketSection,
   catalogSection,
   noticeSection,
+  paymentsSection,
   quoteSection,
   routesSection,
   type Handlers,
@@ -186,6 +187,7 @@ function render(): void {
   if (state.basketNotice) nodes.push(noticeSection(state.basketNotice, true));
   if (state.quote) nodes.push(quoteSection(state.quote));
   if (state.quoteError) nodes.push(noticeSection(state.quoteError, true));
+  nodes.push(paymentsSection());
   root.replaceChildren(...nodes);
 }
 

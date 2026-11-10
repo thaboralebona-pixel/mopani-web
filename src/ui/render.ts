@@ -126,6 +126,15 @@ export function quoteSection(quote: Quote): HTMLElement {
   return section(s.quoteHeading, body);
 }
 
+// Read-only. No balances and no withdraw control until sign-in and the payment provider are live.
+export function paymentsSection(): HTMLElement {
+  return section(s.paymentsHeading, [
+    el('p', 'meta', s.paymentsNotYet),
+    el('p', 'meta', s.paymentsSignIn),
+    el('p', 'meta', s.paymentsNoWithdraw),
+  ]);
+}
+
 export function noticeSection(text: string, warning: boolean): HTMLElement {
   return el('p', warning ? 'notice notice-warning' : 'notice', text);
 }

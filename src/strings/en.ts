@@ -51,4 +51,9 @@ export const strings2 = {
   basketErrorQuantity: 'You can order between 1 and 50 of an item.',
   basketErrorStock: 'You cannot add more than the stock available.',
   basketErrorOutOfStock: 'This item is out of stock.',
+  paymentsHeading: 'Payment status',
+  paymentsNotYet:
+    'Payments are not available yet. When they open, each payment will show as pending until the payment provider confirms it.',
+  paymentsSignIn: 'Sign in to see your payments. Sign-in codes cannot be sent yet.',
+  paymentsNoWithdraw: 'Withdrawals are not available in this pilot.',
 } as const;
