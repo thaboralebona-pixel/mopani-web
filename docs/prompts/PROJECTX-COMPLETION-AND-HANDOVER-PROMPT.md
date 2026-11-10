@@ -26,7 +26,16 @@ Fill in each section. Write "NONE" where nothing applies, and "UNKNOWN" where th
 One sentence stating the objective as the owner gave it, with the date.
 
 ### 2. Approved scope
-- The categories permitted (read-only inspection, documentation, local code, local tests, staging, production), each marked permitted or not permitted.
+- The categories permitted, each marked permitted or not permitted, and each with its own approval record:
+  - Local repository and document inspection.
+  - Local code changes.
+  - Local tests.
+  - Documentation changes.
+  - Staging database reads.
+  - Staging changes.
+  - Production database reads.
+  - Production changes.
+- Read-only inspection must name where it occurred (local repository, staging database, or production database). Authorisation for one location is not authorisation for another.
 - The written approval for each permitted category: who, when, and where it was given.
 - Any approval that does not meet the owner approval standard in the master instructions, section 3.5, is marked REPORTED.
 

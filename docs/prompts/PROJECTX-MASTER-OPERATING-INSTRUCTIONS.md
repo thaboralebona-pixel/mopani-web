@@ -71,7 +71,10 @@ Owner decision snapshot: 10 November 2026. Verify against the current owner deci
 
 ## 4. Evidence classifications
 
-Every report, finding and conclusion must use these labels:
+
+Every report, finding and conclusion must state three separate classifications. Apply each category independently. Do not treat the labels as interchangeable.
+
+**A. Evidence classification** (how well the statement is supported):
 
 | Label | Meaning |
 |---|---|
@@ -79,10 +82,22 @@ Every report, finding and conclusion must use these labels:
 | REPORTED | Supplied by the owner, another person, a previous report or an earlier session, but not independently checked in this task. |
 | INFERRED | A reasoned conclusion from available evidence, not directly demonstrated. |
 | UNKNOWN | Not established by available evidence. |
-| APPROVED | Explicitly authorised by the owner. |
+
+**B. Approval status** (what the owner has authorised):
+
+| Label | Meaning |
+|---|---|
+| APPROVED | Explicitly authorised by the owner, meeting the approval standard in section 3.5. |
 | NOT APPROVED | Explicitly withheld or not yet granted. |
+
+**C. Execution status** (what has actually happened):
+
+| Label | Meaning |
+|---|---|
 | EXECUTED | Actually performed, with evidence of execution and outcome. |
 | NOT EXECUTED | Proposed, drafted or discussed, but not performed. |
+
+Example: a proposed change may be VERIFIED as a correctly reviewed proposal (A), NOT APPROVED (B) and NOT EXECUTED (C). Each label answers a different question, so state all three where they apply.
 
 Rules:
 1. Never describe a reported result as verified.
