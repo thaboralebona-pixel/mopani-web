@@ -2,6 +2,8 @@
 
 Version: Phase 3 (10 Nov 2026). Supersedes the SEC-01 to SEC-13 table from commit `e4a5997`.
 
+ID mapping from the old register: old SEC-02 (driver/marshal views) is now SEC-02 (unchanged). Old SEC-03 (seller_public) is now SEC-05. Old SEC-06 (request_subscription) is now SEC-04. Old SEC-07 (sa_id_is_youth) is now SEC-03. Old SEC-04/05 (production policies) are now SEC-06. Old SEC-09/10/11 are now SEC-08/09/10 and UV-04. Old SEC-12 is now SEC-11. Old SEC-13 is now SEC-12. Anyone tracking IDs from the old register should use this mapping.
+
 Method: read-only queries against staging (`mopani-staging`) and production definitions, as recorded in each entry. Nothing in this register is marked fixed unless the change was applied and tested. Staging changes are not production changes.
 
 Status vocabulary:

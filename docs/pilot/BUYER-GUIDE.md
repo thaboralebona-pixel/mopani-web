@@ -24,10 +24,10 @@
 
 1. Choose products and quantities. Check the minimum basket for your route.
 2. Get your quoted total (when sign-in is available).
-3. Your order is placed only when the app confirms it. If you see an error, your order has not been placed. Try again.
+3. Ordering is not yet live in the app. The pilot will start with supervised orders placed by the team. An order counts as placed only when you receive the team's written confirmation.
 4. A marshal at the origin rank collects from the seller. You will be told when collection is done.
 5. A driver takes the goods to Johannesburg. You will see the delivery status.
-6. Confirm receipt in the app.
+6. Confirm receipt with the team. (Confirmation inside the app is planned, not yet built.)
 
 ## If something goes wrong
 
