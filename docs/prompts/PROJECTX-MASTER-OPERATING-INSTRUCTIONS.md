@@ -1,6 +1,6 @@
 # ProjectX master operating instructions
 
-Status: DRAFT for owner review. Documentation only. Dated 2026-11-10.
+Status: DRAFT for owner review. Documentation only. Last revised: 2026-11-11.
 Applies to: all future Claude work on ProjectX (Mopani Corridor).
 Relationship: the four task-specific prompts (`PROJECTX-PHASE-EXECUTION-PROMPT.md`, `PROJECTX-INDEPENDENT-AUDIT-PROMPT.md`, `PROJECTX-CHANGE-PROPOSAL-REVIEW-PROMPT.md` and `PROJECTX-COMPLETION-AND-HANDOVER-PROMPT.md`) supplement these instructions. They cannot override them. If a task prompt conflicts with an owner restriction, the owner restriction takes precedence.
 
