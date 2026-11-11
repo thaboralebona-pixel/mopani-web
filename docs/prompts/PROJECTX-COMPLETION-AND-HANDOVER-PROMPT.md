@@ -67,6 +67,10 @@ A list of every source inspected: file path and line range, commit hash, query t
 ### 9. Findings discovered
 Each finding with ID, severity, and its confirmation status (CONFIRMED, PLAUSIBLE or UNPROVEN), as defined in the independent audit prompt.
 
+Each finding also states:
+- Its evidence classification (VERIFIED, REPORTED, INFERRED or UNKNOWN).
+- Where it proposes a corrective action, that action's approval status (APPROVED or NOT APPROVED) and execution status (EXECUTED or NOT EXECUTED), as defined in master section 4, B and C. Report the actual position; do not assume a value.
+
 ### 10. Changes not performed
 Every change that was proposed, requested or considered but not made. For each, state why: not approved, not in scope, blocked, or deferred.
 
