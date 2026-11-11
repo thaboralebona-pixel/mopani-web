@@ -1,6 +1,6 @@
 # ProjectX change proposal and SQL review prompt
 
-Status: DRAFT for owner review. Documentation only.
+Status: DRAFT for owner review. Documentation only. Dated 2026-11-10.
 Use with: `PROJECTX-MASTER-OPERATING-INSTRUCTIONS.md`, which takes precedence over this prompt.
 
 ## Purpose
@@ -110,7 +110,7 @@ Review whether rollback is genuinely safe.
 The review ends with these sections, in order.
 
 1. **Summary.** The change, in one paragraph, and its reviewed status.
-2. **Findings.** Each finding with its ID, severity (P0 to P3), evidence, classification (VERIFIED, REPORTED, INFERRED or UNKNOWN), and required correction. Use the same format as the independent audit prompt.
+2. **Findings.** Each finding with its ID, severity (P0 to P3), evidence, classification (VERIFIED, REPORTED, INFERRED or UNKNOWN), approval status and execution status of any proposed change (master section 4, B and C), and required correction. Use the same format as the independent audit prompt.
 3. **Gaps in the proposal.** Each unanswered question from section 1, and each unstated assumption.
 4. **Tests.** Each test in section 6 with its status: PROPOSED, RUN or NOT RUN. Results only for RUN tests.
 5. **Rollback assessment.**

@@ -1,6 +1,6 @@
 # ProjectX completion, evidence and handover prompt
 
-Status: DRAFT for owner review. Documentation only.
+Status: DRAFT for owner review. Documentation only. Dated 2026-11-10.
 Use with: `PROJECTX-MASTER-OPERATING-INSTRUCTIONS.md`, which takes precedence over this prompt.
 
 ## Purpose
@@ -40,7 +40,7 @@ One sentence stating the objective as the owner gave it, with the date.
 - Any approval that does not meet the owner approval standard in the master instructions, section 3.5, is marked REPORTED.
 
 ### 3. Actual work performed
-A numbered list. Each item is one action, in the order it happened, with its date and its label (for example: "Read `docs/pilot/OWNER-DECISIONS.md` at commit `521e4d6`. VERIFIED.").
+A numbered list. Each item is one action, in the order it happened, with its date, its evidence label and, for any change, its approval and execution status (for example: "Read `docs/pilot/OWNER-DECISIONS.md` at commit `521e4d6`. VERIFIED.").
 
 ### 4. Files created or modified
 For each file: path, whether it was created or modified, its size or the number of lines changed, and the commit that includes it. Use the terms exactly:

@@ -1,6 +1,6 @@
 # ProjectX phase execution prompt
 
-Status: DRAFT for owner review. Documentation only.
+Status: DRAFT for owner review. Documentation only. Dated 2026-11-10.
 Use with: `PROJECTX-MASTER-OPERATING-INSTRUCTIONS.md`. That document takes precedence over this one.
 
 ## How to use
@@ -72,6 +72,8 @@ Every phase ends with these six headings, in this order:
 4. **Outstanding risks.** Each risk, with its severity and whether it is an inference or a confirmed fact.
 5. **Acceptance criteria.** Each criterion marked MET or UNMET, with the evidence that supports the mark.
 6. **Approval required for the next phase.** State exactly what approval is needed and from whom. Do not describe an approval as given unless it meets the owner approval standard in the master instructions, section 3.5.
+
+Each work item also records its approval status (APPROVED or NOT APPROVED) and its execution status (EXECUTED or NOT EXECUTED), as defined in master section 4, B and C. Report the actual position for each item; do not assume a value.
 
 ## Repository and local checks
 

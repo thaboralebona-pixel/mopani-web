@@ -1,6 +1,6 @@
 # ProjectX independent audit and challenge prompt
 
-Status: DRAFT for owner review. Documentation only.
+Status: DRAFT for owner review. Documentation only. Dated 2026-11-10.
 Use with: `PROJECTX-MASTER-OPERATING-INSTRUCTIONS.md`, which takes precedence over this prompt.
 
 ## Objective
@@ -76,6 +76,8 @@ Every finding uses this structure, in this order:
 9. **Recommended correction.** The smallest change that closes the finding. State whether it needs owner approval under the master instructions.
 
 Add an **evidence needed to close** line to any PLAUSIBLE or UNPROVEN finding.
+
+Each finding that proposes a change also states its approval status (APPROVED or NOT APPROVED) and its execution status (EXECUTED or NOT EXECUTED), as defined in master section 4, B and C. Report the actual position; do not assume a value.
 
 ## Report structure
 
